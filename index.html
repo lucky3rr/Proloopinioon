@@ -1,0 +1,3586 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Prolo Opinion - Real Opinion Trading</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+        import { getDatabase, ref, set, get, update, remove, onValue, push, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYxfpjgf0_-TycKA8GCulRYfqj5sZez-0",
+            authDomain: "prolo-opinion.firebaseapp.com",
+            databaseURL: "https://prolo-opinion-default-rtdb.firebaseio.com",
+            projectId: "prolo-opinion",
+            storageBucket: "prolo-opinion.firebasestorage.app",
+            messagingSenderId: "629040620716",
+            appId: "1:629040620716:web:c01bf3995d3f74f6ed6b09",
+            measurementId: "G-9D90PD019Y"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const auth = getAuth(app);
+        
+        // Make them globally available
+        window.firebase = { 
+            database, 
+            auth, 
+            ref, 
+            set, 
+            get, 
+            update, 
+            remove, 
+            onValue, 
+            push,
+            query,
+            orderByChild,
+            equalTo,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut,
+            onAuthStateChanged,
+            updateProfile
+        };
+    </script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0db9f2",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#101e22",
+                        "success": "#00C853",
+                        "error": "#f87171",
+                        "card-dark": "#182d34",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .ios-shadow { box-shadow: 0px -4px 20px rgba(0, 0, 0, 0.4); }
+        
+        /* Page transitions */
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* iOS home indicator spacing */
+        .pb-safe-area-inset-bottom { padding-bottom: env(safe-area-inset-bottom, 20px); }
+        
+        /* Loading skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #1a2d34 25%, #223f49 50%, #1a2d34 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* Swipe animation */
+        .swipe-container {
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+        
+        .swipe-thumb {
+            position: absolute;
+            left: 6px;
+            top: 6px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 10;
+        }
+        
+        .swipe-track {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .swipe-track span {
+            transition: opacity 0.3s ease;
+        }
+        
+        .swipe-complete {
+            background: linear-gradient(90deg, #00C853 0%, #00E676 100%) !important;
+            animation: successPulse 0.5s ease;
+        }
+        
+        @keyframes successPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .swipe-shimmer {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Custom chart container styles */
+        .tradingview-widget-container {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 1.5rem;
+        }
+        
+        .fill-1 {
+            font-variation-settings: 'FILL' 1;
+        }
+        .refer-card-gradient {
+            background: linear-gradient(135deg, #0db9f2 0%, #0076a3 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        
+        /* Deposit swipe button */
+        .deposit-swipe-button {
+            height: 72px;
+            background: linear-gradient(90deg, #0db9f2 0%, #00f2ea 100%);
+            border-radius: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        /* New styles for portfolio */
+        .portfolio-tab-active {
+            background: white;
+            color: #0db9f2;
+            box-shadow: 0 2px 8px rgba(13, 185, 242, 0.2);
+        }
+        
+        .dark .portfolio-tab-active {
+            background: #101e22;
+            color: #0db9f2;
+        }
+        
+        .line-clamp-1 {
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+        }
+        
+        .ended-trade {
+            opacity: 0.7;
+            background: linear-gradient(135deg, #1a2b31 0%, #1e3339 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-white min-h-screen">
+    
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" style="display: none;">
+        <div class="w-full max-w-md bg-background-dark rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Login to Prolo Opinion</h2>
+                <button onclick="hideLoginModal()" class="text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div id="login-error" class="mb-4 p-3 bg-red-900/30 border border-red-700 rounded-lg hidden">
+                <p class="text-red-300 text-sm" id="login-error-text"></p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email Address</label>
+                    <input type="email" id="login-email" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="name@example.com"/>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="login-password" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="••••••••"/>
+                </div>
+                
+                <button onclick="login()" class="w-full bg-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">login</span>
+                    Login
+                </button>
+                
+                <p class="text-center text-slate-400 text-sm">
+                    New user? <button onclick="showSignupModal()" class="text-primary font-medium">Sign up</button>
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- SIGNUP MODAL -->
+    <div id="signup-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" style="display: none;">
+        <div class="w-full max-w-md bg-background-dark rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">Create Account</h2>
+                <button onclick="hideSignupModal()" class="text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div id="signup-error" class="mb-4 p-3 bg-red-900/30 border border-red-700 rounded-lg hidden">
+                <p class="text-red-300 text-sm" id="signup-error-text"></p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                    <input type="text" id="signup-name" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="John Doe"/>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Email Address</label>
+                    <input type="email" id="signup-email" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="name@example.com"/>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Password</label>
+                    <input type="password" id="signup-password" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="•••••••• (min 6 characters)"/>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Referral Code (Optional)</label>
+                    <div class="relative">
+                        <input type="text" id="signup-referral-code" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="Enter friend's referral code"/>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                            <span class="text-primary text-xs font-bold bg-primary/10 px-2 py-1 rounded">Get ₹10</span>
+                        </div>
+                    </div>
+                    <p class="text-slate-400 text-xs mt-1">Enter a valid referral code to get ₹10 bonus</p>
+                </div>
+                
+                <button onclick="signup()" class="w-full bg-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">person_add</span>
+                    Create Account
+                </button>
+                
+                <p class="text-center text-slate-400 text-sm">
+                    Already have account? <button onclick="showLoginModal()" class="text-primary font-medium">Login</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN MODAL -->
+    <div id="admin-login-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4" style="display: none;">
+        <div class="w-full max-w-md bg-background-dark rounded-2xl p-6 shadow-2xl border border-primary/30">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">admin_panel_settings</span>
+                    Admin Login
+                </h2>
+                <button onclick="hideAdminLoginModal()" class="text-slate-400 hover:text-white">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            
+            <div id="admin-login-error" class="mb-4 p-3 bg-red-900/30 border border-red-700 rounded-lg hidden">
+                <p class="text-red-300 text-sm" id="admin-login-error-text"></p>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Admin Password</label>
+                    <input type="password" id="admin-password" class="w-full bg-card-dark border border-slate-700 rounded-lg px-4 py-3 text-white" placeholder="Enter admin password"/>
+                </div>
+                
+                <button onclick="adminLogin()" class="w-full bg-primary text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">key</span>
+                    Access Admin Panel
+                </button>
+                
+                <p class="text-center text-slate-400 text-xs mt-2">
+                    Default password: <span class="text-primary font-mono">admin@prolo</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN PANEL -->
+    <div id="admin-page" class="page">
+        <div class="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
+            <!-- Header -->
+            <header class="sticky top-0 z-40 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center p-4 justify-between max-w-md mx-auto">
+                    <button onclick="showHome()" class="text-slate-700 dark:text-white">
+                        <span class="material-symbols-outlined text-2xl cursor-pointer">arrow_back_ios_new</span>
+                    </button>
+                    <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">admin_panel_settings</span>
+                        Admin Panel
+                    </h1>
+                    <button onclick="logoutAdmin()" class="text-red-500">
+                        <span class="material-symbols-outlined text-2xl cursor-pointer">logout</span>
+                    </button>
+                </div>
+            </header>
+            
+            <main class="flex-grow max-w-md mx-auto p-6 w-full">
+                <div class="bg-primary/5 rounded-2xl p-5 border border-primary/10 mb-6">
+                    <h2 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">qr_code_scanner</span>
+                        Manage Deposit Details
+                    </h2>
+                    <p class="text-sm text-slate-400 mb-6">Update the UPI ID and QR code shown to users during deposit</p>
+                    
+                    <div id="admin-msg" class="mb-4 p-3 rounded-lg hidden"></div>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <label class="font-bold text-sm text-slate-900 dark:text-white">UPI ID</label>
+                            <input id="admin-upi" type="text"
+                                class="w-full mt-2 px-4 py-4 rounded-xl bg-slate-100 dark:bg-card-dark font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="merchant@upi">
+                        </div>
+                        
+                        <div>
+                            <label class="font-bold text-sm text-slate-900 dark:text-white">QR Code URL</label>
+                            <input id="admin-qr-url" type="url"
+                                class="w-full mt-2 px-4 py-4 rounded-xl bg-slate-100 dark:bg-card-dark text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=...">
+                            <p class="text-xs text-slate-400 mt-2">QR code image URL that displays the UPI payment QR</p>
+                        </div>
+                        
+                        <div class="bg-card-dark/30 rounded-xl p-4">
+                            <h3 class="text-sm font-bold mb-3">Current Settings Preview</h3>
+                            <div class="flex items-center gap-4">
+                                <div class="bg-white dark:bg-[#1a2b31] p-2 rounded-lg w-16 h-16 flex items-center justify-center">
+                                    <img id="preview-qr" src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=upi://pay?pa=7726926620@ybl&pn=Prolo%20Opinion" class="w-full h-full object-contain" alt="QR Preview" onerror="this.src='https://via.placeholder.com/100?text=QR'">
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-400">Current UPI:</p>
+                                    <p id="preview-upi" class="text-sm font-bold font-mono">7726926620@ybl</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button onclick="saveAdminSettings()" class="w-full bg-primary text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 mt-6">
+                            <span class="material-symbols-outlined">save</span>
+                            Save Changes
+                        </button>
+                        
+                        <button onclick="resetToDefault()" class="w-full bg-transparent border border-slate-700 text-slate-400 font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">restart_alt</span>
+                            Reset to Default
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-yellow-900/20 border border-yellow-700/30 rounded-xl p-4">
+                    <div class="flex gap-3">
+                        <span class="material-symbols-outlined text-yellow-500">info</span>
+                        <div>
+                            <p class="text-sm font-bold text-yellow-500">Admin Access Only</p>
+                            <p class="text-xs text-slate-400 mt-1">Changes made here will immediately update the UPI ID and QR code shown on the deposit page.</p>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- DEPOSIT PAGE -->
+    <div id="deposit-page" class="page">
+        <div class="min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
+            <!-- Header -->
+            <header class="sticky top-0 z-40 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
+                <div class="flex items-center p-4 justify-between max-w-md mx-auto">
+                    <button onclick="showWallet()" class="text-slate-700 dark:text-white">
+                        <span class="material-symbols-outlined text-2xl cursor-pointer">arrow_back_ios_new</span>
+                    </button>
+                    <h1 class="text-xl font-bold tracking-tight">Add Money</h1>
+                    <!-- Hidden admin access button (long press or double tap) -->
+                    <div class="w-10 relative">
+                        <button id="admin-access-btn" onclick="handleAdminAccess()" class="text-slate-400 hover:text-primary transition-colors">
+                            <span class="material-symbols-outlined text-2xl">settings</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+            
+            <main class="flex-grow max-w-md mx-auto p-6">
+                <h2 class="text-xl font-bold text-center mb-1">Deposit via UPI</h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 text-center mb-6">Scan QR or copy UPI ID below</p>
+                
+                <!-- QR Box -->
+                <div class="bg-slate-100 dark:bg-card-dark p-5 rounded-3xl mb-6">
+                    <div class="bg-white dark:bg-[#1a2b31] p-3 rounded-xl shadow mb-4">
+                        <img
+                            id="deposit-qr-code"
+                            src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=7726926620@ybl&pn=Prolo%20Opinion&am=&cu=INR"
+                            onerror="this.src='https://via.placeholder.com/300?text=QR+Code+Here'"
+                            class="w-full aspect-square object-contain rounded-lg"
+                            alt="UPI QR Code">
+                    </div>
+                    
+                    <p class="text-xs text-slate-500 dark:text-slate-400 font-bold text-center mb-2">MERCHANT UPI ID</p>
+                    
+                    <div class="flex items-center justify-between bg-white dark:bg-[#1a2b31] px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <span id="upiText" class="font-bold text-slate-900 dark:text-white">7726926620@ybl</span>
+                        <button onclick="copyUPI()" class="bg-primary text-white p-2 rounded-lg hover:bg-primary/90 transition-colors cursor-pointer">
+                            <span class="material-symbols-outlined text-lg">content_copy</span>
+                        </button>
+                    </div>
+                    
+                    <p id="copyMsg" class="text-center text-green-600 text-sm mt-2 hidden">
+                        ✅ UPI ID Copied
+                    </p>
+                </div>
+                
+                <!-- Inputs -->
+                <div class="space-y-5">
+                    <div>
+                        <label class="font-bold text-sm text-slate-900 dark:text-white">Deposit Amount</label>
+                        <input id="amount" type="number" min="200"
+                            class="w-full mt-2 px-4 py-4 rounded-xl bg-slate-100 dark:bg-card-dark font-bold text-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="200">
+                        <p class="text-xs text-primary mt-1 font-semibold">Minimum ₹200 required</p>
+                    </div>
+                    
+                    <div>
+                        <label class="font-bold text-sm text-slate-900 dark:text-white">Enter 12-digit UTR</label>
+                        <input id="utr" maxlength="12"
+                            class="w-full mt-2 px-4 py-4 rounded-xl bg-slate-100 dark:bg-card-dark font-mono tracking-wider text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="XXXXXXXXXXXX">
+                    </div>
+                    
+                    <p id="msg" class="text-center font-bold"></p>
+                </div>
+                
+                <!-- Swipe Button for Deposit Confirmation -->
+                <div id="deposit-swipe-button" class="relative w-full h-[72px] bg-gradient-to-r from-primary to-[#00f2ea] rounded-3xl overflow-hidden cursor-pointer swipe-container mt-8">
+                    <div class="swipe-shimmer"></div>
+                    <div class="swipe-thumb h-[60px] w-[60px] bg-white rounded-2xl flex items-center justify-center shadow-xl">
+                        <span class="material-symbols-outlined text-primary text-2xl font-black">keyboard_double_arrow_right</span>
+                    </div>
+                    <div class="swipe-track">
+                        <span class="text-white text-base font-black uppercase tracking-wider">Swipe to Confirm Deposit</span>
+                    </div>
+                </div>
+            </main>
+            
+            <!-- Footer -->
+            <footer class="p-6 border-t border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg">
+                <p class="text-center text-xs text-slate-500 dark:text-slate-400">
+                    Note: Deposits are processed within 1-2 hours after UTR verification
+                </p>
+            </footer>
+        </div>
+    </div>
+    
+    <!-- HOME PAGE -->
+    <div id="home-page" class="page active">
+        <!-- Top Navigation Bar -->
+        <nav class="sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center p-4 justify-between max-w-md mx-auto">
+                <div class="flex items-center gap-3">
+                    <div class="size-10 overflow-hidden rounded-full border-2 border-primary bg-card-dark flex items-center justify-center cursor-pointer" onclick="checkAuth(showProfile)">
+                        <span id="user-avatar" class="material-symbols-outlined text-primary text-xl">person</span>
+                    </div>
+                    <div>
+                        <h2 id="user-name" class="text-sm font-bold leading-tight">Prolo Opinion</h2>
+                        <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                            <span id="verified-badge" class="material-symbols-outlined text-[12px] text-primary hidden">verified</span>
+                            <span id="auth-status">Tap to login</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <!-- WALLET BUTTON -->
+                    <button onclick="checkAuth(showWallet)" class="bg-primary/10 px-3 py-1.5 rounded-full flex items-center gap-2 border border-primary/20 cursor-pointer hover:bg-primary/20 transition-colors">
+                        <span class="material-symbols-outlined text-primary text-[20px]">account_balance_wallet</span>
+                        <span id="wallet-balance" class="text-sm font-bold text-primary">₹0</span>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <main class="max-w-md mx-auto">
+            <!-- Search Bar -->
+            <div class="px-4 py-4">
+                <label class="flex flex-col min-w-40 h-12 w-full">
+                    <div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+                        <div class="text-slate-400 flex border-none bg-white dark:bg-[#1a2b30] items-center justify-center pl-4 rounded-l-xl">
+                            <span class="material-symbols-outlined">search</span>
+                        </div>
+                        <input id="search-input" type="text" onkeyup="searchEvents(this.value)" class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-white dark:bg-[#1a2b30] placeholder:text-slate-400 px-4 pl-2 text-base font-medium leading-normal" placeholder="Search events or traders" value=""/>
+                    </div>
+                </label>
+            </div>
+            
+            <!-- Category Tabs -->
+            <div class="pb-2">
+                <div class="flex overflow-x-auto no-scrollbar px-4 gap-6 border-b border-slate-200 dark:border-slate-800" id="category-tabs">
+                    <!-- Categories will be loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- AAPL Chart Section (Replaces Hot Deals for Crypto) -->
+            <div id="btc-chart-section" class="mt-4 hidden">
+                <div class="flex items-center justify-between px-4 pb-3">
+                    <h3 class="text-slate-900 dark:text-white text-lg font-extrabold leading-tight tracking-tight">Apple Stock Chart 📈</h3>
+                    <span class="text-primary text-xs font-bold uppercase tracking-widest cursor-pointer hover:text-primary/80 transition-colors" onclick="refreshChart()">Refresh</span>
+                </div>
+                <div class="px-4 mb-6">
+                    <!-- TradingView Widget BEGIN -->
+                    <div class="tradingview-widget-container" style="width:100%;">
+                      <div class="tradingview-widget-container__widget"></div>
+                      <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank"><span class="blue-text">AAPL stock chart</span></a><span class="trademark"> by TradingView</span></div>
+                      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+                      {
+                      "allow_symbol_change": true,
+                      "calendar": false,
+                      "details": false,
+                      "hide_side_toolbar": true,
+                      "hide_top_toolbar": false,
+                      "hide_legend": false,
+                      "hide_volume": false,
+                      "hotlist": false,
+                      "interval": "D",
+                      "locale": "en",
+                      "save_image": true,
+                      "style": "1",
+                      "symbol": "NASDAQ:AAPL",
+                      "theme": "dark",
+                      "timezone": "Etc/UTC",
+                      "backgroundColor": "#0F0F0F",
+                      "gridColor": "rgba(242, 242, 242, 0.06)",
+                      "watchlist": [],
+                      "withdateranges": false,
+                      "compareSymbols": [],
+                      "studies": [],
+                      "width": 350,
+                      "height": 350
+                      }
+                      </script>
+                    </div>
+                    <!-- TradingView Widget END -->
+                </div>
+            </div>
+            
+            <!-- Hot Deals Section (Hidden for Crypto category) -->
+            <div id="hot-deals-section" class="mt-4">
+                <div class="flex items-center justify-between px-4 pb-3">
+                    <h3 class="text-slate-900 dark:text-white text-lg font-extrabold leading-tight tracking-tight">Hot Deals 🔥</h3>
+                    <span class="text-primary text-xs font-bold uppercase tracking-widest">View All</span>
+                </div>
+                <div id="hot-deals" class="flex overflow-x-auto no-scrollbar p-4 pt-0 gap-4">
+                    <!-- Hot deals will be loaded here -->
+                </div>
+            </div>
+            
+            <!-- Event Cards Feed -->
+            <div class="px-4 py-4 space-y-4" id="events-feed">
+                <div class="flex items-center justify-between pb-1">
+                    <h3 class="text-slate-900 dark:text-white text-lg font-extrabold leading-tight tracking-tight">Top Events</h3>
+                    <div class="flex gap-2">
+                        <select id="sort-select" onchange="loadEvents()" class="bg-card-dark text-white text-xs px-2 py-1 rounded border border-slate-700">
+                            <option value="trending">Trending</option>
+                            <option value="new">New</option>
+                            <option value="ending_soon">Closing Soon</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Events will be loaded here dynamically -->
+                <div id="events-container">
+                    <!-- Skeleton loading -->
+                    <div class="space-y-4">
+                        <div class="bg-white dark:bg-[#1a2b30] rounded-xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm skeleton" style="height: 150px;"></div>
+                        <div class="bg-white dark:bg-[#1a2b30] rounded-xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm skeleton" style="height: 150px;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- EVENT DETAILS PAGE -->
+    <div id="event-details-page" class="page">
+        <!-- Top AppBar -->
+        <div class="fixed top-0 left-0 right-0 z-50 bg-background-dark/80 backdrop-blur-xl border-b border-white/5">
+            <div class="flex items-center p-4 pb-4 justify-between">
+                <button onclick="showHome()" class="text-white flex size-10 shrink-0 items-center justify-center rounded-full active:bg-white/10 cursor-pointer">
+                    <span class="material-symbols-outlined">chevron_left</span>
+                </button>
+                <h2 class="text-white text-sm font-bold uppercase tracking-widest flex-1 text-center">Trade Event</h2>
+                <div class="flex w-10 items-center justify-end">
+                    <button onclick="shareEvent()" class="flex cursor-pointer items-center justify-center rounded-full size-10 bg-transparent text-white active:bg-white/10">
+                        <span class="material-symbols-outlined">share</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <main class="pt-24 pb-[420px] px-5" id="event-details-content">
+            <!-- Event details will be loaded here -->
+        </main>
+        
+        <!-- Bottom Trade Panel -->
+        <div id="trade-panel" class="fixed bottom-0 left-0 right-0 bg-[#152329]/95 backdrop-blur-2xl ios-shadow rounded-t-[2.5rem] border-t border-white/10 z-50">
+            <!-- Trade panel will be loaded here -->
+        </div>
+    </div>
+
+    <!-- WALLET PAGE -->
+    <div id="wallet-page" class="page">
+        <!-- Top Navigation Bar -->
+        <nav class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800">
+            <div class="flex items-center gap-3">
+                <button onclick="showHome()" class="text-slate-700 dark:text-white">
+                    <span class="material-symbols-outlined text-2xl cursor-pointer">arrow_back_ios_new</span>
+                </button>
+                <h1 class="text-xl font-bold tracking-tight">Wallet</h1>
+            </div>
+            <div class="flex gap-4">
+                <span class="material-symbols-outlined text-2xl cursor-pointer">help_outline</span>
+                <span onclick="refreshWallet()" class="material-symbols-outlined text-2xl cursor-pointer">refresh</span>
+            </div>
+        </nav>
+        
+        <main class="max-w-md mx-auto pb-20" id="wallet-content">
+            <!-- Wallet content will be loaded here -->
+        </main>
+    </div>
+
+    <!-- PORTFOLIO PAGE -->
+    <div id="portfolio-page" class="page">
+        <div class="relative mx-auto max-w-[430px] min-h-screen bg-background-light dark:bg-background-dark overflow-x-hidden flex flex-col">
+            <!-- Portfolio content starts directly with Your Positions -->
+            <div id="portfolio-content" class="pt-6">
+                <!-- Skeleton loading -->
+                <div class="p-4 space-y-4">
+                    <div class="skeleton rounded-xl p-5" style="height: 120px;"></div>
+                    <div class="skeleton rounded-xl p-4" style="height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REWARDS PAGE -->
+    <div id="rewards-page" class="page">
+        <div class="relative flex min-h-screen w-full flex-col max-w-[480px] mx-auto overflow-x-hidden pb-32 bg-background-light dark:bg-background-dark">
+            <div class="sticky top-0 z-50 flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+                <div class="text-primary flex size-12 shrink-0 items-center">
+                    <span class="material-symbols-outlined text-2xl cursor-pointer" onclick="showHome()">arrow_back_ios</span>
+                </div>
+                <h2 class="text-black dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Refer & Earn Rewards</h2>
+                <div class="flex w-12 items-center justify-end">
+                    <button class="flex cursor-pointer items-center justify-center rounded-xl h-12 bg-transparent text-black dark:text-white">
+                        <span class="material-symbols-outlined">help_outline</span>
+                    </button>
+                </div>
+            </div>
+            <div class="px-4 py-4">
+                <div class="refer-card-gradient rounded-2xl p-6 relative overflow-hidden shadow-xl shadow-primary/20">
+                    <div class="relative z-10">
+                        <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-bold uppercase tracking-wider text-white mb-2">Limited Time Offer</span>
+                        <h1 class="text-3xl font-extrabold text-white leading-tight mb-2">Earn ₹2,499</h1>
+                        <p class="text-white/90 text-sm font-medium leading-relaxed max-w-[80%]">For every 10 successful refers who join and trade.</p>
+                        <div class="mt-6 bg-black/10 rounded-xl p-4 border border-white/10">
+                            <div class="flex justify-between items-end mb-2">
+                                <span class="text-xs font-bold text-white uppercase tracking-wide">Your Progress</span>
+                                <span class="text-xl font-bold text-white" id="referral-progress">0/10 <span class="text-xs font-medium opacity-70">refers</span></span>
+                            </div>
+                            <div class="w-full bg-white/20 h-3 rounded-full overflow-hidden">
+                                <div id="referral-progress-bar" class="bg-white h-full w-[0%] rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+                            </div>
+                            <p class="text-[10px] text-white/70 mt-3 flex items-start gap-1">
+                                <span class="material-symbols-outlined text-xs">info</span>
+                                Note: User must deposit minimum ₹500 to count as a successful referral
+                            </p>
+                        </div>
+                    </div>
+                    <div class="absolute -right-6 -top-4 opacity-10">
+                        <span class="material-symbols-outlined text-[160px] text-white">celebration</span>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 py-2">
+                <div class="bg-white dark:bg-[#1a2e36] rounded-xl p-5 border border-gray-100 dark:border-none">
+                    <p class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-widest mb-3">Your Unique Referral Code</p>
+                    <div class="flex gap-3">
+                        <div id="user-referral-code-container" class="flex-1 bg-gray-50 dark:bg-background-dark/50 border-2 border-dashed border-primary/40 rounded-xl flex items-center justify-between px-4 py-3">
+                            <span id="user-referral-code" class="text-xl font-black text-black dark:text-white tracking-widest">Login to view</span>
+                            <button onclick="copyReferralCode()" class="text-primary material-symbols-outlined">content_copy</button>
+                        </div>
+                        <button onclick="shareReferralLink()" class="bg-primary hover:bg-primary/90 text-background-dark px-6 rounded-xl flex items-center justify-center transition-all shadow-lg shadow-primary/20">
+                            <span class="material-symbols-outlined font-bold">share</span>
+                        </button>
+                    </div>
+                    <button onclick="shareViaWhatsApp()" class="w-full mt-4 py-4 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 rounded-xl font-bold transition-all text-sm">
+                        Share Link via WhatsApp
+                    </button>
+                </div>
+            </div>
+            <div class="px-4 py-6">
+                <h3 class="text-black dark:text-white text-lg font-bold mb-5 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary">auto_awesome</span>
+                    How it Works
+                </h3>
+                <div class="space-y-6 relative">
+                    <div class="absolute left-[19px] top-2 bottom-2 w-0.5 bg-gray-200 dark:bg-gray-800"></div>
+                    <div class="relative flex gap-4">
+                        <div class="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-[#223f49] border-2 border-primary text-primary font-bold shadow-sm">
+                            1
+                        </div>
+                        <div class="pt-1">
+                            <p class="text-black dark:text-white font-bold text-base">Share your link</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Invite friends to join the trading community using your unique code.</p>
+                        </div>
+                    </div>
+                    <div class="relative flex gap-4">
+                        <div class="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-[#223f49] border-2 border-primary text-primary font-bold shadow-sm">
+                            2
+                        </div>
+                        <div class="pt-1">
+                            <p class="text-black dark:text-white font-bold text-base">Friend deposits ₹500</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Your friend must complete KYC and deposit at least ₹500 into their wallet.</p>
+                        </div>
+                    </div>
+                    <div class="relative flex gap-4">
+                        <div class="z-10 flex size-10 shrink-0 items-center justify-center rounded-full bg-primary text-background-dark font-black shadow-lg shadow-primary/30">
+                            3
+                        </div>
+                        <div class="pt-1">
+                            <p class="text-black dark:text-white font-bold text-base">Get Rewarded</p>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Complete 10 such referrals to unlock your ₹2,499 cash reward instantly!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-10">
+                <div class="bg-primary/5 rounded-2xl p-5 border border-primary/10">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-black dark:text-white font-bold">Your Referrals</h4>
+                        <span class="text-primary text-xs font-bold uppercase tracking-wider" onclick="viewReferralHistory()">View History</span>
+                    </div>
+                    <div id="referrals-list" class="space-y-3">
+                        <!-- Referrals will be loaded dynamically -->
+                        <div class="text-center py-4 text-slate-400">
+                            <span class="material-symbols-outlined text-4xl mb-2">group</span>
+                            <p>No referrals yet</p>
+                            <p class="text-xs mt-1">Share your code to earn rewards!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE PAGE -->
+    <div id="profile-page" class="page">
+        <div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto bg-white dark:bg-background-dark border-x border-slate-100 dark:border-slate-800 shadow-xl">
+            <div class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 border-b border-slate-50 dark:border-slate-800">
+                <div class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+                    <span class="material-symbols-outlined text-slate-900 dark:text-white cursor-pointer" onclick="showHome()">arrow_back_ios_new</span>
+                </div>
+                <h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Profile</h2>
+            </div>
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                <div class="flex pt-10 pb-8 flex-col items-center">
+                    <div class="relative">
+                        <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-28 w-28 ring-4 ring-primary/20" data-alt="User Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBDhsoQx8oZlI4OYqP-YHskGgmvr8Gmyai9gnR7p38gp5tdxZ3NfXzTybw5ds9-RaPWQtAxZeE0EaA23uuOZuh1UkqQO675XeNRg0VA6rnL-Yt-iKazNgHGRpluB1_B_x9SclJSe3npsuHLbJC7OqAs4gdEobLPdkqzSN-TrCk4VU4gTdDr61dObeZZcOwQ8YhNTTh0STSISBvxSLOM3AjoasWBmJ0kUbhiqaenEgY51dcI0Ibh1ySPi6UO2X5fEYVmQFH_REwqFB0");'>
+                        </div>
+                        <div class="absolute bottom-1 right-1 bg-primary text-white rounded-full p-1 border-4 border-white dark:border-background-dark">
+                            <span class="material-symbols-outlined text-sm block">verified</span>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <h1 id="profile-name" class="text-2xl font-bold text-slate-900 dark:text-white">Prolo Trader</h1>
+                    </div>
+                </div>
+                <div class="px-6">
+                    <div class="bg-slate-50 dark:bg-[#1a2b31] rounded-2xl p-1 border border-slate-100 dark:border-slate-700/50">
+                        <div class="flex items-center gap-4 p-4 border-b border-slate-100 dark:border-slate-700/50">
+                            <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary">person</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Full Name</span>
+                                <span id="profile-full-name" class="text-slate-900 dark:text-white font-semibold">Login to view</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 border-b border-slate-100 dark:border-slate-700/50">
+                            <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary">email</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Email Address</span>
+                                <span id="profile-email" class="text-slate-900 dark:text-white font-semibold">user@example.com</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 p-4">
+                            <div class="size-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-primary">card_giftcard</span>
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-medium text-slate-400 uppercase tracking-wider">Referral Code</span>
+                                <span id="profile-referral-code" class="text-slate-900 dark:text-white font-semibold">Login to view</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="px-6 mt-8 mb-12">
+                    <button onclick="logout()" class="w-full flex items-center justify-center gap-2 p-4 rounded-xl border border-red-100 dark:border-red-900/20 text-red-500 font-bold hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors">
+                        <span class="material-symbols-outlined">logout</span>
+                        Sign Out
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WITHDRAW PAGE -->
+    <div id="withdraw-page" class="page">
+        <div class="min-h-screen flex flex-col items-center bg-background-light dark:bg-background-dark">
+            <header class="w-full max-w-[480px] sticky top-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-lg">
+                <div class="flex items-center px-4 py-4 justify-between">
+                    <button onclick="showHome()" class="flex size-10 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                        <span class="material-symbols-outlined text-2xl text-slate-700 dark:text-white">arrow_back_ios_new</span>
+                    </button>
+                    <h1 class="text-slate-900 dark:text-white text-lg font-bold tracking-tight">Withdraw to UPI</h1>
+                    <div class="size-10"></div> 
+                </div>
+            </header>
+            <main class="flex-1 flex flex-col w-full max-w-[480px] px-6 pt-4 pb-32">
+                <div class="bg-white dark:bg-[#1a2b31] border border-slate-100 dark:border-slate-800 rounded-3xl p-6 mb-8 flex flex-col items-center text-center">
+                    <span class="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Withdrawable Balance</span>
+                    <div class="flex items-baseline gap-1">
+                        <span id="withdrawable-balance" class="text-slate-900 dark:text-white text-4xl font-extrabold tracking-tight">₹0</span>
+                        <span class="text-slate-400 text-xl font-semibold">.00</span>
+                    </div>
+                </div>
+                <div class="space-y-8">
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-end px-1">
+                            <label class="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-tight">Enter Amount</label>
+                            <span class="text-primary text-xs font-bold bg-primary/10 px-2 py-1 rounded-full">Min: ₹100</span>
+                        </div>
+                        <div class="relative group">
+                            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-2xl">₹</div>
+                            <input id="withdraw-amount" class="w-full bg-white dark:bg-[#1a2b31] border-2 border-slate-100 dark:border-slate-800 focus:border-primary focus:ring-0 rounded-2xl h-20 pl-10 pr-24 text-3xl font-extrabold text-slate-900 dark:text-white placeholder:text-slate-200 dark:placeholder:text-slate-600 transition-all" placeholder="0" type="number" value="500" min="100"/>
+                            <button onclick="setMaxWithdraw()" class="absolute right-4 top-1/2 -translate-y-1/2 text-primary font-bold text-sm hover:opacity-80 transition-opacity cursor-pointer">
+                                MAX
+                            </button>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <label class="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-tight px-1">Enter UPI ID</label>
+                        <div class="relative">
+                            <input id="withdraw-upi" class="w-full bg-white dark:bg-[#1a2b31] border-2 border-slate-100 dark:border-slate-800 focus:border-primary focus:ring-0 rounded-2xl h-16 px-5 text-base font-medium text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 transition-all" placeholder="username@upi" type="text" value=""/>
+                            <div id="upi-verified" class="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-lg hidden">
+                                <span class="material-symbols-outlined text-emerald-600 text-[18px]">verified</span>
+                                <span class="text-emerald-600 text-[10px] font-bold uppercase">Verified</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 px-1">
+                            <span class="text-slate-400 text-xs font-medium">Account Holder:</span>
+                            <span id="account-holder" class="text-slate-900 dark:text-white text-xs font-bold uppercase"></span>
+                        </div>
+                    </div>
+                    <div class="bg-primary/5 rounded-2xl p-5 border border-primary/10">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-slate-600 dark:text-slate-400 text-sm">Requested Amount</span>
+                            <span id="requested-amount" class="text-slate-900 dark:text-white font-bold">₹500.00</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-3 border-b border-primary/10">
+                            <span class="text-slate-600 dark:text-slate-400 text-sm">Processing Fee</span>
+                            <span class="text-emerald-600 font-bold">FREE</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-3">
+                            <span class="text-slate-900 dark:text-white font-bold">Total Payout</span>
+                            <span id="total-payout" class="text-primary text-xl font-extrabold">₹500.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-8 flex flex-col items-center gap-2">
+                    <div class="flex items-center gap-2 text-slate-400">
+                        <span class="material-symbols-outlined text-sm">lock</span>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">End-to-End Encrypted</span>
+                    </div>
+                    <p class="text-slate-400 text-[11px] text-center px-8">
+                        Transfers are usually instant but may take up to 24 hours depending on your bank.
+                    </p>
+                </div>
+            </main>
+            <div class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 p-6 flex justify-center">
+                <div class="w-full max-w-[432px]">
+                    <button onclick="confirmWithdrawal()" class="w-full bg-primary hover:bg-primary/90 active:scale-[0.98] transition-all text-white h-16 rounded-2xl font-extrabold text-lg shadow-xl shadow-primary/25 flex items-center justify-center gap-3 cursor-pointer">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        Confirm Withdrawal
+                    </button>
+                    <p class="text-center text-xs text-slate-400 mt-2">By confirming, you agree to our terms and conditions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#101e22]/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-safe-area-inset-bottom z-50">
+        <div class="max-w-md mx-auto flex justify-around items-center py-2 px-4 h-16">
+            <button onclick="showHome()" class="flex flex-col items-center gap-1 text-primary">
+                <span class="material-symbols-outlined text-[26px]" style="font-variation-settings: 'FILL' 1">home</span>
+                <span class="text-[10px] font-bold">Home</span>
+            </button>
+            <button onclick="checkAuth(showPortfolio)" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+                <span class="material-symbols-outlined text-[26px]">analytics</span>
+                <span class="text-[10px] font-bold">Portfolio</span>
+            </button>
+            <button onclick="checkAuth(showRewards)" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+                <span class="material-symbols-outlined text-[26px]">military_tech</span>
+                <span class="text-[10px] font-bold">Rewards</span>
+            </button>
+            <button onclick="checkAuth(showProfile)" class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+                <span class="material-symbols-outlined text-[26px]">menu</span>
+                <span class="text-[10px] font-bold">Menu</span>
+            </button>
+        </div>
+        <!-- iOS Home Indicator Spacing -->
+        <div class="h-6 w-full"></div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg hidden" style="max-width: 90%;">
+        <div class="flex items-center gap-3">
+            <span id="toast-icon" class="material-symbols-outlined"></span>
+            <p id="toast-message" class="text-sm font-medium"></p>
+        </div>
+    </div>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 hidden">
+        <div class="bg-card-dark p-6 rounded-xl flex flex-col items-center gap-4">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+            <p class="text-white font-medium" id="loading-text">Loading...</p>
+        </div>
+    </div>
+
+    <script>
+        // ===================== STATE MANAGEMENT =====================
+        let currentUser = null;
+        let authToken = localStorage.getItem('prolo_token');
+        let currentEvent = null;
+        let selectedPosition = null;
+        let selectedQuantity = 50;
+        let selectedPrice = null;
+        let events = [];
+        let categories = [];
+        let walletBalance = 0;
+        let currentPage = 'home';
+        let userPortfolio = [];
+        let userTransactions = [];
+        let currentCategory = 'all';
+        let firebaseInitialized = false;
+        let activePositions = [];
+        let settledPositions = [];
+        
+        // Admin settings
+        let adminSettings = {
+            upi_id: '7726926620@ybl',
+            qr_url: 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=7726926620@ybl&pn=Prolo%20Opinion&am=&cu=INR'
+        };
+        
+        // Load admin settings from localStorage
+        const savedAdminSettings = localStorage.getItem('prolo_admin_settings');
+        if (savedAdminSettings) {
+            try {
+                adminSettings = JSON.parse(savedAdminSettings);
+            } catch (e) {
+                console.error('Error loading admin settings:', e);
+            }
+        }
+        
+        // Store fixed settlement values to prevent reload changes
+        let fixedSettlementValues = JSON.parse(localStorage.getItem('prolo_settlement_values') || '{}');
+        
+        // Portfolio system rules implementation - UPDATED FOR UI RULES
+        const portfolioRules = {
+            display_fields: {
+                show_invested_value: true,
+                show_current_value: true
+            },
+            visible_content: {
+                show_trade_question_only: true,
+                hide_trade_values: false
+            },
+            portfolio_filter: {
+                allowed_status: ["active", "ended", "settled"],
+                exclude_status: []
+            },
+            render_logic: {
+                render_active_trades_only: false,
+                render_trade_question: true,
+                render_trade_amounts: true
+            }
+        };
+        
+        // ===================== CORE FUNCTIONS =====================
+        
+        // Load portfolio data - FIXED VERSION with proper ended trade handling
+        async function loadPortfolio() {
+            console.log("Loading portfolio with fixed ended trade logic...");
+            
+            if (!currentUser) {
+                return;
+            }
+            
+            try {
+                let portfolio = [];
+                
+                // Load from localStorage first
+                const savedUser = localStorage.getItem('prolo_user');
+                if (savedUser) {
+                    const userData = JSON.parse(savedUser);
+                    if (userData.portfolio && Array.isArray(userData.portfolio)) {
+                        portfolio = userData.portfolio;
+                        console.log('Loaded portfolio from localStorage:', portfolio.length, 'items');
+                    }
+                }
+                
+                // Check separate portfolio storage
+                if (portfolio.length === 0) {
+                    const storedPortfolio = localStorage.getItem(`portfolio_${currentUser.id}`);
+                    if (storedPortfolio) {
+                        portfolio = JSON.parse(storedPortfolio);
+                        console.log('Loaded portfolio from separate storage:', portfolio.length, 'items');
+                    }
+                }
+                
+                // Try Firebase as fallback
+                if (portfolio.length === 0) {
+                    const firebaseReady = await initializeFirebase();
+                    if (firebaseReady) {
+                        portfolio = await getUserPortfolioFromFirebase(currentUser.id);
+                        console.log('Loaded portfolio from Firebase:', portfolio.length, 'items');
+                    }
+                }
+                
+                const now = new Date();
+                activePositions = [];
+                settledPositions = [];
+                
+                portfolio.forEach((position, index) => {
+                    const endTime = new Date(position.end_time || position.timestamp || 0);
+                    const isEnded = endTime <= now;
+                    
+                    // Determine status based on end time
+                    let status = 'active';
+                    if (isEnded) {
+                        status = position.status || 'ended';
+                    }
+                    
+                    const invested = position.invested || position.investment || 0;
+                    
+                    // FIX: Preserve values for ended trades
+                    let current_value = invested; // Default for active trades
+                    
+                    if (isEnded && status === 'ended') {
+                        // For ended but not settled trades, preserve invested value
+                        current_value = invested;
+                    } else if (isEnded && status === 'settled') {
+                        // For settled trades, use settlement value if available
+                        const settlementKey = `${position.order_id || position.id}_settlement`;
+                        if (fixedSettlementValues[settlementKey]) {
+                            current_value = fixedSettlementValues[settlementKey];
+                        } else {
+                            // Generate settlement value once and store it
+                            const settlementValue = calculateSettlementValue(position);
+                            fixedSettlementValues[settlementKey] = settlementValue;
+                            localStorage.setItem('prolo_settlement_values', JSON.stringify(fixedSettlementValues));
+                            current_value = settlementValue;
+                        }
+                    }
+                    
+                    const portfolioItem = {
+                        id: position.order_id || position.id || `pos_${Date.now()}_${index}`,
+                        event_id: position.event_id,
+                        question: position.question || position.event_question || 'Unknown Event',
+                        category: position.category || 'General',
+                        position: position.position || 'YES',
+                        invested: invested,
+                        quantity: position.quantity || 1,
+                        price: position.price || 0,
+                        current_value: current_value,
+                        pnl: current_value - invested,
+                        end_time: position.end_time || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+                        status: status,
+                        timestamp: position.timestamp || new Date().toISOString()
+                    };
+                    
+                    if (isEnded) {
+                        settledPositions.push(portfolioItem);
+                    } else {
+                        activePositions.push(portfolioItem);
+                    }
+                });
+                
+                // Calculate portfolio totals - both active and settled positions
+                const allPositions = [...activePositions, ...settledPositions];
+                const total_invested = allPositions.reduce((sum, pos) => sum + pos.invested, 0);
+                const current_value = allPositions.reduce((sum, pos) => sum + pos.current_value, 0);
+                const total_pnl = current_value - total_invested;
+                const profit_loss = total_pnl;
+                
+                renderPortfolio({
+                    total_invested,
+                    current_value,
+                    profit_loss,
+                    total_pnl,
+                    active_positions: activePositions,
+                    settled_positions: settledPositions
+                });
+                
+            } catch (error) {
+                console.error('Error loading portfolio:', error);
+                // Show empty portfolio if error
+                renderPortfolio({
+                    total_invested: 0,
+                    current_value: 0,
+                    profit_loss: 0,
+                    total_pnl: 0,
+                    active_positions: [],
+                    settled_positions: []
+                });
+            }
+        }
+        
+        // Calculate settlement value for ended trades
+        function calculateSettlementValue(position) {
+            // Simple settlement logic: for ended trades, return either full value or zero
+            // In real app, this would be based on actual event outcome
+            const random = Math.random();
+            const invested = position.invested || position.investment || 0;
+            
+            if (random > 0.5) {
+                // Win: return investment + 20% profit
+                return invested * 1.2;
+            } else {
+                // Loss: return 80% of investment
+                return invested * 0.8;
+            }
+        }
+        
+        // Auto-settle ended trades periodically
+        function autoSettleEndedTrades(portfolio) {
+            const now = new Date();
+            let updated = false;
+            
+            portfolio.forEach(position => {
+                const endTime = new Date(position.end_time);
+                if (endTime <= now && position.status === 'active') {
+                    position.status = 'ended';
+                    
+                    // After a delay, mark as settled with a value
+                    setTimeout(() => {
+                        position.status = 'settled';
+                        const settlementKey = `${position.order_id || position.id}_settlement`;
+                        if (!fixedSettlementValues[settlementKey]) {
+                            fixedSettlementValues[settlementKey] = calculateSettlementValue(position);
+                            localStorage.setItem('prolo_settlement_values', JSON.stringify(fixedSettlementValues));
+                        }
+                        
+                        // Save updated portfolio
+                        if (currentUser) {
+                            const savedUser = localStorage.getItem('prolo_user');
+                            if (savedUser) {
+                                const userData = JSON.parse(savedUser);
+                                userData.portfolio = portfolio;
+                                localStorage.setItem('prolo_user', JSON.stringify(userData));
+                                currentUser = userData;
+                            }
+                        }
+                        
+                        // Refresh portfolio display
+                        if (currentPage === 'portfolio') {
+                            loadPortfolio();
+                        }
+                    }, 5000); // Settle after 5 seconds
+                    
+                    updated = true;
+                }
+            });
+            
+            return updated;
+        }
+        
+        // Place order function - UPDATED VERSION
+        async function placeOrder() {
+            if (!currentEvent || !selectedPosition || !authToken) {
+                showToast('Please login and select position', 'error');
+                return;
+            }
+            
+            const investment = selectedPrice * selectedQuantity;
+            if (walletBalance < investment) {
+                showToast('Insufficient balance. Please add money to your wallet.', 'error');
+                return;
+            }
+            
+            showLoading('Placing order...');
+            
+            try {
+                // Update wallet balance
+                walletBalance -= investment;
+                
+                // Create portfolio data
+                const portfolioData = {
+                    order_id: `order_${Date.now()}`,
+                    event_id: currentEvent.id,
+                    question: currentEvent.question,
+                    category: currentEvent.category,
+                    position: selectedPosition,
+                    quantity: selectedQuantity,
+                    price: selectedPrice,
+                    invested: investment,
+                    current_value: investment,
+                    end_time: currentEvent.end_time,
+                    timestamp: new Date().toISOString(),
+                    user_id: currentUser.id,
+                    user_name: currentUser.name,
+                    status: 'active'
+                };
+                
+                // Save to localStorage
+                let userPortfolio = [];
+                const savedUser = localStorage.getItem('prolo_user');
+                if (savedUser) {
+                    const userData = JSON.parse(savedUser);
+                    userPortfolio = userData.portfolio || [];
+                    userPortfolio.push(portfolioData);
+                    userData.portfolio = userPortfolio;
+                    userData.wallet_balance = walletBalance;
+                    localStorage.setItem('prolo_user', JSON.stringify(userData));
+                    currentUser = userData;
+                }
+                
+                // Also save to separate portfolio storage
+                const storedPortfolio = localStorage.getItem(`portfolio_${currentUser.id}`);
+                let separatePortfolio = storedPortfolio ? JSON.parse(storedPortfolio) : [];
+                separatePortfolio.push(portfolioData);
+                localStorage.setItem(`portfolio_${currentUser.id}`, JSON.stringify(separatePortfolio));
+                
+                // Update simulated users for demo
+                const userIndex = simulatedUsers.findIndex(u => u.id === currentUser.id);
+                if (userIndex !== -1) {
+                    simulatedUsers[userIndex].wallet_balance = walletBalance;
+                    if (!simulatedUsers[userIndex].portfolio) {
+                        simulatedUsers[userIndex].portfolio = [];
+                    }
+                    simulatedUsers[userIndex].portfolio.push(portfolioData);
+                    localStorage.setItem('prolo_users', JSON.stringify(simulatedUsers));
+                }
+                
+                // Auto-settle check
+                autoSettleEndedTrades(userPortfolio);
+                
+                // Try Firebase if available
+                const firebaseReady = await initializeFirebase();
+                if (firebaseReady) {
+                    try {
+                        await saveOrderToFirebase({
+                            user_id: currentUser.id,
+                            event_id: currentEvent.id,
+                            event_question: currentEvent.question,
+                            category: currentEvent.category,
+                            position: selectedPosition,
+                            quantity: selectedQuantity,
+                            price: selectedPrice,
+                            investment: investment,
+                            status: 'active'
+                        });
+                        
+                        await updateUserWalletBalance(currentUser.id, investment, 'subtract');
+                    } catch (firebaseError) {
+                        console.warn('Firebase save failed, using localStorage only:', firebaseError);
+                    }
+                }
+                
+                hideLoading();
+                showToast(`Order placed successfully! ${selectedQuantity.toLocaleString()} shares of ${selectedPosition}`, 'success');
+                
+                // Update UI
+                document.getElementById('wallet-balance').textContent = `₹${walletBalance.toLocaleString()}`;
+                
+                // Reset selection
+                selectedPosition = null;
+                selectedQuantity = 50;
+                selectedPrice = null;
+                
+                // Show portfolio with new order
+                setTimeout(() => {
+                    showPortfolio();
+                }, 1000);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Order error:', error);
+                showToast('Order failed. Please try again.', 'error');
+            }
+        }
+        
+        // ===================== FIREBASE FUNCTIONS =====================
+        async function initializeFirebase() {
+            if (firebaseInitialized) return true;
+            
+            try {
+                if (!window.firebase || !window.firebase.database) {
+                    console.error('Firebase not loaded');
+                    return false;
+                }
+                
+                setupEventListeners();
+                
+                window.firebase.onAuthStateChanged(window.firebase.auth, (user) => {
+                    if (user) {
+                        handleUserLogin(user);
+                    } else {
+                        handleUserLogout();
+                    }
+                });
+                
+                firebaseInitialized = true;
+                return true;
+            } catch (error) {
+                console.error('Firebase initialization error:', error);
+                return false;
+            }
+        }
+        
+        async function handleUserLogin(firebaseUser) {
+            try {
+                const userData = await getUserFromFirebase(firebaseUser.uid);
+                
+                if (userData) {
+                    currentUser = {
+                        id: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        name: userData.name || firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                        referral_code: userData.referral_code,
+                        wallet_balance: userData.wallet_balance || 0,
+                        verified: userData.verified || true,
+                        successful_referrals: userData.successful_referrals || 0,
+                        bonus_received: userData.bonus_received || 0,
+                        created_at: userData.created_at || new Date().toISOString(),
+                        portfolio: userData.portfolio || []
+                    };
+                } else {
+                    currentUser = {
+                        id: firebaseUser.uid,
+                        email: firebaseUser.email,
+                        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+                        referral_code: generateReferralCode(firebaseUser.email.split('@')[0]),
+                        wallet_balance: 0,
+                        verified: true,
+                        successful_referrals: 0,
+                        bonus_received: 0,
+                        created_at: new Date().toISOString(),
+                        portfolio: []
+                    };
+                    
+                    await saveUserToFirebase(currentUser);
+                }
+                
+                authToken = firebaseUser.accessToken;
+                localStorage.setItem('prolo_token', authToken);
+                localStorage.setItem('prolo_user', JSON.stringify(currentUser));
+                
+                updateAuthUI();
+                setupEventListeners();
+                loadWalletBalance();
+                loadCategories();
+                loadEvents();
+                loadUserReferrals();
+                
+                showToast('Welcome back!', 'success');
+            } catch (error) {
+                console.error('Error handling user login:', error);
+            }
+        }
+        
+        function handleUserLogout() {
+            currentUser = null;
+            authToken = null;
+            localStorage.removeItem('prolo_token');
+            localStorage.removeItem('prolo_user');
+            updateAuthUI();
+        }
+        
+        function setupEventListeners() {
+            const eventsRef = window.firebase.ref(window.firebase.database, 'events');
+            window.firebase.onValue(eventsRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    console.log('Events updated from Firebase');
+                    if (currentPage === 'home') {
+                        loadEvents();
+                    }
+                }
+            });
+            
+            if (currentUser && currentUser.id) {
+                const userRef = window.firebase.ref(window.firebase.database, `users/${currentUser.id}`);
+                window.firebase.onValue(userRef, (snapshot) => {
+                    if (snapshot.exists() && currentUser) {
+                        const updatedUser = snapshot.val();
+                        currentUser.wallet_balance = updatedUser.wallet_balance || 0;
+                        currentUser.successful_referrals = updatedUser.successful_referrals || 0;
+                        localStorage.setItem('prolo_user', JSON.stringify(currentUser));
+                        updateAuthUI();
+                    }
+                });
+            }
+        }
+        
+        // ===================== SIMULATED DATABASE =====================
+        function hashPassword(password) {
+            return 'hashed_' + btoa(password).substring(0, 20);
+        }
+        
+        let simulatedUsers = JSON.parse(localStorage.getItem('prolo_users') || '[]');
+        
+        if (simulatedUsers.length === 0) {
+            simulatedUsers = [
+                {
+                    id: 'user_001',
+                    name: 'Demo Trader',
+                    email: 'demo@prolo.com',
+                    password_hash: hashPassword('demo123'),
+                    referral_code: 'PROLO001',
+                    referred_by: null,
+                    created_at: new Date().toISOString(),
+                    wallet_balance: 0,
+                    verified: true,
+                    bonus_received: 0,
+                    referrals: [],
+                    successful_referrals: 0,
+                    portfolio: []
+                }
+            ];
+            localStorage.setItem('prolo_users', JSON.stringify(simulatedUsers));
+        }
+        
+        let simulatedReferrals = JSON.parse(localStorage.getItem('prolo_referrals') || '[]');
+        
+        const simulatedEvents = [
+            {
+                id: 'event_001',
+                title: 'IND vs AUS 2nd T20',
+                question: 'Will India win the match against Australia?',
+                category: 'Cricket',
+                yes_price: 6.5,
+                no_price: 3.5,
+                yes_change: 1.2,
+                no_change: -0.8,
+                participants: 12400,
+                end_time: new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(),
+                status: 'LIVE',
+                image: 'https://images.unsplash.com/photo-1552674605-db6ffd8facb5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+            },
+            {
+                id: 'event_002',
+                title: 'MrBeast Milestone',
+                question: 'Will MrBeast reach 250M views on his latest video in 24 hours?',
+                category: 'YouTube',
+                yes_price: 7.2,
+                no_price: 2.8,
+                yes_change: 2.1,
+                no_change: -1.5,
+                participants: 8100,
+                end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+                status: 'LIVE',
+                image: 'https://images.unsplash.com/photo-1611224923853-80b023f02d71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80'
+            }
+        ];
+        
+        const simulatedCategories = [
+            { id: 'all', name: 'All' },
+            { id: 'cricket', name: 'Cricket' },
+            { id: 'youtube', name: 'YouTube' },
+            { id: 'crypto', name: 'Crypto' },
+            { id: 'politics', name: 'Politics' },
+            { id: 'finance', name: 'Finance' }
+        ];
+        
+        // ===================== FIREBASE DATABASE FUNCTIONS =====================
+        async function saveUserToFirebase(user) {
+            try {
+                const { database, ref, set } = window.firebase;
+                const userRef = ref(database, `users/${user.id}`);
+                await set(userRef, user);
+                return true;
+            } catch (error) {
+                console.error('Error saving user to Firebase:', error);
+                return false;
+            }
+        }
+        
+        async function getUserFromFirebase(userId) {
+            try {
+                const { database, ref, get } = window.firebase;
+                const userRef = ref(database, `users/${userId}`);
+                const snapshot = await get(userRef);
+                return snapshot.exists() ? snapshot.val() : null;
+            } catch (error) {
+                console.error('Error getting user from Firebase:', error);
+                return null;
+            }
+        }
+        
+        async function getUserByEmailFromFirebase(email) {
+            try {
+                const { database, ref, get, query, orderByChild, equalTo } = window.firebase;
+                const usersRef = ref(database, 'users');
+                const userQuery = query(usersRef, orderByChild('email'), equalTo(email));
+                const snapshot = await get(userQuery);
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const userId = Object.keys(users)[0];
+                    return { id: userId, ...users[userId] };
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting user by email:', error);
+                return null;
+            }
+        }
+        
+        async function getEventsFromFirebase(params = {}) {
+            try {
+                const { database, ref, get } = window.firebase;
+                const eventsRef = ref(database, 'events');
+                const snapshot = await get(eventsRef);
+                
+                if (!snapshot.exists()) {
+                    return simulatedEvents;
+                }
+                
+                let events = Object.values(snapshot.val()).filter(event => event !== null);
+                
+                if (params.category && params.category !== 'all') {
+                    events = events.filter(e => 
+                        e.category.toLowerCase() === params.category.toLowerCase()
+                    );
+                }
+                
+                if (params.search) {
+                    const searchTerm = params.search.toLowerCase();
+                    events = events.filter(e => 
+                        e.question.toLowerCase().includes(searchTerm) ||
+                        e.title.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                if (params.sort) {
+                    if (params.sort === 'trending') {
+                        events.sort((a, b) => b.participants - a.participants);
+                    } else if (params.sort === 'new') {
+                        events.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                    } else if (params.sort === 'ending_soon') {
+                        events.sort((a, b) => new Date(a.end_time) - new Date(b.end_time));
+                    }
+                }
+                
+                return events;
+            } catch (error) {
+                console.error('Error getting events from Firebase:', error);
+                return simulatedEvents;
+            }
+        }
+        
+        async function getEventFromFirebase(eventId) {
+            try {
+                const { database, ref, get } = window.firebase;
+                const eventRef = ref(database, `events/${eventId}`);
+                const snapshot = await get(eventRef);
+                return snapshot.exists() ? snapshot.val() : null;
+            } catch (error) {
+                console.error('Error getting event from Firebase:', error);
+                return null;
+            }
+        }
+        
+        async function saveReferralToFirebase(referralData) {
+            try {
+                const { database, ref, push, set, get, update } = window.firebase;
+                const referralsRef = ref(database, 'referrals');
+                const newReferralRef = push(referralsRef);
+                
+                const referralId = newReferralRef.key;
+                await set(newReferralRef, {
+                    id: referralId,
+                    ...referralData,
+                    created_at: new Date().toISOString()
+                });
+                
+                if (referralData.referrer_id) {
+                    const referrerRef = ref(database, `users/${referralData.referrer_id}`);
+                    const referrerSnap = await get(referrerRef);
+                    
+                    if (referrerSnap.exists()) {
+                        const referrer = referrerSnap.val();
+                        const updatedSuccessfulRefs = (referrer.successful_referrals || 0) + 1;
+                        
+                        await update(referrerRef, {
+                            successful_referrals: updatedSuccessfulRefs
+                        });
+                        
+                        if (currentUser && currentUser.id === referralData.referrer_id) {
+                            currentUser.successful_referrals = updatedSuccessfulRefs;
+                            localStorage.setItem('prolo_user', JSON.stringify(currentUser));
+                            updateReferralProgress();
+                        }
+                    }
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Error saving referral to Firebase:', error);
+                return false;
+            }
+        }
+        
+        async function updateUserWalletBalance(userId, amount, type = 'add') {
+            try {
+                const { database, ref, get, update } = window.firebase;
+                const userRef = ref(database, `users/${userId}`);
+                const snapshot = await get(userRef);
+                
+                if (snapshot.exists()) {
+                    const user = snapshot.val();
+                    const currentBalance = user.wallet_balance || 0;
+                    const newBalance = type === 'add' ? currentBalance + amount : currentBalance - amount;
+                    
+                    await update(userRef, {
+                        wallet_balance: newBalance
+                    });
+                    
+                    return newBalance;
+                }
+                return 0;
+            } catch (error) {
+                console.error('Error updating wallet in Firebase:', error);
+                return 0;
+            }
+        }
+        
+        async function saveWithdrawalToFirebase(withdrawalData) {
+            try {
+                const { database, ref, push, set } = window.firebase;
+                const withdrawalsRef = ref(database, 'withdrawals');
+                const newWithdrawalRef = push(withdrawalsRef);
+                
+                const withdrawal = {
+                    id: newWithdrawalRef.key,
+                    user_id: currentUser.id,
+                    user_name: currentUser.name,
+                    user_email: currentUser.email,
+                    amount: withdrawalData.amount,
+                    upi_id: withdrawalData.upi_id,
+                    status: 'pending',
+                    timestamp: new Date().toISOString(),
+                    requested_at: new Date().toISOString(),
+                    admin_notified: false
+                };
+                
+                await set(newWithdrawalRef, withdrawal);
+                
+                await push(ref(database, "admin_notifications"), {
+                    type: 'withdrawal_request',
+                    user_id: currentUser.id,
+                    user_name: currentUser.name,
+                    amount: withdrawalData.amount,
+                    upi_id: withdrawalData.upi_id,
+                    status: 'pending',
+                    timestamp: new Date().toISOString(),
+                    read: false,
+                    title: 'New Withdrawal Request',
+                    message: `${currentUser.name} has requested a withdrawal of ₹${withdrawalData.amount} to ${withdrawalData.upi_id}`
+                });
+                
+                return { success: true, withdrawal_id: withdrawal.id };
+            } catch (error) {
+                console.error('Error saving withdrawal to Firebase:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        async function saveOrderToFirebase(orderData) {
+            try {
+                const { database, ref, push, set, get, update } = window.firebase;
+                
+                const ordersRef = ref(database, 'orders');
+                const newOrderRef = push(ordersRef);
+                const orderId = newOrderRef.key;
+                
+                await set(newOrderRef, {
+                    id: orderId,
+                    ...orderData,
+                    created_at: new Date().toISOString(),
+                    status: 'active'
+                });
+                
+                const userPortfolioRef = ref(database, `users/${orderData.user_id}/portfolio`);
+                const portfolioSnapshot = await get(userPortfolioRef);
+                let portfolio = portfolioSnapshot.exists() ? portfolioSnapshot.val() : [];
+                
+                if (!Array.isArray(portfolio)) {
+                    portfolio = [];
+                }
+                
+                portfolio.push({
+                    order_id: orderId,
+                    event_id: orderData.event_id,
+                    question: orderData.event_question,
+                    category: orderData.category,
+                    position: orderData.position,
+                    quantity: orderData.quantity,
+                    price: orderData.price,
+                    invested: orderData.investment,
+                    current_value: orderData.investment,
+                    timestamp: new Date().toISOString(),
+                    status: 'active'
+                });
+                
+                await update(userPortfolioRef, portfolio);
+                
+                const eventRef = ref(database, `events/${orderData.event_id}`);
+                const eventSnapshot = await get(eventRef);
+                
+                if (eventSnapshot.exists()) {
+                    const event = eventSnapshot.val();
+                    await update(eventRef, {
+                        participants: (event.participants || 0) + 1
+                    });
+                }
+                
+                return { success: true, order_id: orderId };
+            } catch (error) {
+                console.error('Error saving order to Firebase:', error);
+                return { success: false, error: error.message };
+            }
+        }
+        
+        async function getUserPortfolioFromFirebase(userId) {
+            try {
+                const { database, ref, get } = window.firebase;
+                const portfolioRef = ref(database, `users/${userId}/portfolio`);
+                const snapshot = await get(portfolioRef);
+                
+                if (snapshot.exists()) {
+                    const portfolio = snapshot.val();
+                    return Array.isArray(portfolio) ? portfolio : [];
+                }
+                return [];
+            } catch (error) {
+                console.error('Error getting portfolio from Firebase:', error);
+                return [];
+            }
+        }
+        
+        async function getUserReferralsFromFirebase(userId) {
+            try {
+                const { database, ref, get, query, orderByChild, equalTo } = window.firebase;
+                const referralsRef = ref(database, 'referrals');
+                const userReferralsQuery = query(referralsRef, orderByChild('referrer_id'), equalTo(userId));
+                const snapshot = await get(userReferralsQuery);
+                
+                if (snapshot.exists()) {
+                    return Object.values(snapshot.val());
+                }
+                return [];
+            } catch (error) {
+                console.error('Error getting referrals from Firebase:', error);
+                return [];
+            }
+        }
+        
+        // ===================== UTILITY FUNCTIONS =====================
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            const msg = document.getElementById('toast-message');
+            
+            toast.className = `fixed top-20 left-1/2 transform -translate-x-1/2 z-50 px-4 py-3 rounded-lg shadow-lg flex items-center gap-3 ${type === 'success' ? 'bg-green-900/90 text-green-100' : type === 'error' ? 'bg-red-900/90 text-red-100' : 'bg-blue-900/90 text-blue-100'}`;
+            
+            icon.textContent = type === 'success' ? 'check_circle' : type === 'error' ? 'error' : 'info';
+            msg.textContent = message;
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+        
+        function showLoading(text = 'Loading...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+        
+        function showLoginModal() {
+            hideSignupModal();
+            document.getElementById('login-modal').style.display = 'flex';
+        }
+        
+        function hideLoginModal() {
+            document.getElementById('login-modal').style.display = 'none';
+        }
+        
+        function showSignupModal() {
+            hideLoginModal();
+            document.getElementById('signup-modal').style.display = 'flex';
+        }
+        
+        function hideSignupModal() {
+            document.getElementById('signup-modal').style.display = 'none';
+        }
+        
+        // Admin modal functions
+        function showAdminLoginModal() {
+            document.getElementById('admin-login-modal').style.display = 'flex';
+        }
+        
+        function hideAdminLoginModal() {
+            document.getElementById('admin-login-modal').style.display = 'none';
+            document.getElementById('admin-password').value = '';
+            document.getElementById('admin-login-error').classList.add('hidden');
+        }
+        
+        function showAdminPage() {
+            hideAllPages();
+            document.getElementById('admin-page').classList.add('active');
+            currentPage = 'admin';
+            loadAdminSettings();
+        }
+        
+        function logoutAdmin() {
+            showHome();
+            showToast('Logged out from admin panel', 'info');
+        }
+        
+        // Admin access handler (hidden on deposit page)
+        let adminTapCount = 0;
+        let adminTapTimer;
+        
+        function handleAdminAccess() {
+            adminTapCount++;
+            
+            if (adminTapTimer) clearTimeout(adminTapTimer);
+            
+            adminTapTimer = setTimeout(() => {
+                if (adminTapCount >= 3) {
+                    // Triple tap detected
+                    showAdminLoginModal();
+                }
+                adminTapCount = 0;
+            }, 500);
+        }
+        
+        function adminLogin() {
+            const password = document.getElementById('admin-password').value;
+            
+            if (password === 'admin@prolo') {
+                hideAdminLoginModal();
+                showAdminPage();
+                showToast('Admin access granted', 'success');
+            } else {
+                document.getElementById('admin-login-error-text').textContent = 'Invalid admin password';
+                document.getElementById('admin-login-error').classList.remove('hidden');
+            }
+        }
+        
+        function loadAdminSettings() {
+            document.getElementById('admin-upi').value = adminSettings.upi_id;
+            document.getElementById('admin-qr-url').value = adminSettings.qr_url;
+            document.getElementById('preview-upi').textContent = adminSettings.upi_id;
+            document.getElementById('preview-qr').src = adminSettings.qr_url.includes('?') ? 
+                adminSettings.qr_url + '&t=' + Date.now() : 
+                adminSettings.qr_url + '?t=' + Date.now();
+        }
+        
+        function saveAdminSettings() {
+            const newUpi = document.getElementById('admin-upi').value.trim();
+            const newQrUrl = document.getElementById('admin-qr-url').value.trim();
+            
+            if (!newUpi || !newUpi.includes('@')) {
+                showAdminMessage('Please enter a valid UPI ID', 'error');
+                return;
+            }
+            
+            if (!newQrUrl) {
+                showAdminMessage('Please enter a QR code URL', 'error');
+                return;
+            }
+            
+            adminSettings.upi_id = newUpi;
+            adminSettings.qr_url = newQrUrl;
+            
+            localStorage.setItem('prolo_admin_settings', JSON.stringify(adminSettings));
+            
+            // Update deposit page
+            document.getElementById('upiText').textContent = newUpi;
+            document.getElementById('deposit-qr-code').src = newQrUrl.includes('?') ? 
+                newQrUrl + '&t=' + Date.now() : 
+                newQrUrl + '?t=' + Date.now();
+            
+            showAdminMessage('Settings saved successfully!', 'success');
+        }
+        
+        function resetToDefault() {
+            adminSettings.upi_id = '7726926620@ybl';
+            adminSettings.qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=upi://pay?pa=7726926620@ybl&pn=Prolo%20Opinion&am=&cu=INR';
+            
+            localStorage.setItem('prolo_admin_settings', JSON.stringify(adminSettings));
+            
+            document.getElementById('admin-upi').value = adminSettings.upi_id;
+            document.getElementById('admin-qr-url').value = adminSettings.qr_url;
+            document.getElementById('preview-upi').textContent = adminSettings.upi_id;
+            document.getElementById('preview-qr').src = adminSettings.qr_url + '&t=' + Date.now();
+            
+            // Update deposit page
+            document.getElementById('upiText').textContent = adminSettings.upi_id;
+            document.getElementById('deposit-qr-code').src = adminSettings.qr_url + '&t=' + Date.now();
+            
+            showAdminMessage('Reset to default settings', 'success');
+        }
+        
+        function showAdminMessage(message, type) {
+            const msgDiv = document.getElementById('admin-msg');
+            msgDiv.textContent = message;
+            msgDiv.className = `mb-4 p-3 rounded-lg ${type === 'success' ? 'bg-green-900/30 text-green-300 border border-green-700' : 'bg-red-900/30 text-red-300 border border-red-700'}`;
+            msgDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                msgDiv.classList.add('hidden');
+            }, 3000);
+        }
+        
+        function checkAuth(callback) {
+            if (!authToken || !currentUser) {
+                showLoginModal();
+                showToast('Please login first', 'error');
+            } else {
+                callback();
+            }
+        }
+        
+        function generateReferralCode(name) {
+            const prefix = name.substring(0, 3).toUpperCase();
+            const randomNum = Math.floor(100 + Math.random() * 900);
+            return prefix + 'PRO' + randomNum;
+        }
+        
+        function updateReferralProgress() {
+            if (!currentUser) return;
+            
+            const progressElement = document.getElementById('referral-progress');
+            const progressBar = document.getElementById('referral-progress-bar');
+            
+            if (progressElement && progressBar) {
+                const completed = currentUser.successful_referrals || 0;
+                progressElement.textContent = `${completed}/10 refers`;
+                const percentage = Math.min((completed / 10) * 100, 100);
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+        
+        // ===================== AUTHENTICATION =====================
+        async function login() {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!email || !password) {
+                showError('login', 'Please fill all fields');
+                return;
+            }
+            
+            showLoading('Logging in...');
+            
+            try {
+                const { auth, signInWithEmailAndPassword } = window.firebase;
+                
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const firebaseUser = userCredential.user;
+                
+                hideLoading();
+                hideLoginModal();
+                showToast('Login successful!', 'success');
+                
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Login error:', error);
+                
+                let errorMessage = 'Login failed. Please try again.';
+                if (error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Invalid email or password';
+                } else if (error.code === 'auth/user-not-found') {
+                    errorMessage = 'No account found with this email';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMessage = 'Incorrect password';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = 'Too many failed attempts. Please try again later';
+                }
+                
+                showError('login', errorMessage);
+            }
+        }
+        
+        async function signup() {
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const referralCode = document.getElementById('signup-referral-code').value;
+            
+            if (!name || !email || !password) {
+                showError('signup', 'Please fill all fields');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showError('signup', 'Password must be at least 6 characters');
+                return;
+            }
+            
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('signup', 'Please enter a valid email address');
+                return;
+            }
+            
+            showLoading('Creating account...');
+            
+            try {
+                const { auth, createUserWithEmailAndPassword, updateProfile } = window.firebase;
+                
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const firebaseUser = userCredential.user;
+                
+                await updateProfile(firebaseUser, {
+                    displayName: name
+                });
+                
+                const firebaseReady = await initializeFirebase();
+                
+                let referredBy = null;
+                let bonusAmount = 0;
+                let referrerId = null;
+                
+                if (referralCode && referralCode.trim() !== '') {
+                    if (firebaseReady) {
+                        const { database, ref, get, query, orderByChild, equalTo } = window.firebase;
+                        const usersRef = ref(database, 'users');
+                        const referrerQuery = query(usersRef, orderByChild('referral_code'), equalTo(referralCode.trim().toUpperCase()));
+                        const referrerSnap = await get(referrerQuery);
+                        
+                        if (referrerSnap.exists()) {
+                            const referrers = referrerSnap.val();
+                            referrerId = Object.keys(referrers)[0];
+                            referredBy = referrerId;
+                            bonusAmount = 10;
+                        }
+                    }
+                }
+                
+                const newUser = {
+                    id: firebaseUser.uid,
+                    name: name,
+                    email: email,
+                    referral_code: generateReferralCode(name),
+                    referred_by: referredBy,
+                    created_at: new Date().toISOString(),
+                    wallet_balance: bonusAmount,
+                    verified: true,
+                    bonus_received: bonusAmount,
+                    referrals: [],
+                    successful_referrals: 0,
+                    total_trades: 0,
+                    total_investment: 0,
+                    total_profit: 0,
+                    portfolio: []
+                };
+                
+                if (firebaseReady) {
+                    await saveUserToFirebase(newUser);
+                    
+                    if (referrerId) {
+                        await saveReferralToFirebase({
+                            referrer_id: referrerId,
+                            referred_user_id: firebaseUser.uid,
+                            referred_user_name: name,
+                            referred_user_email: email,
+                            referral_code_used: referralCode.trim().toUpperCase(),
+                            bonus_amount: 10,
+                            status: 'completed'
+                        });
+                    }
+                }
+                
+                hideLoading();
+                hideSignupModal();
+                
+                document.getElementById('signup-name').value = '';
+                document.getElementById('signup-email').value = '';
+                document.getElementById('signup-password').value = '';
+                document.getElementById('signup-referral-code').value = '';
+                
+                if (bonusAmount > 0) {
+                    showToast(`Account created successfully! ₹${bonusAmount} bonus credited.`, 'success');
+                } else {
+                    showToast('Account created successfully!', 'success');
+                }
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Signup error:', error);
+                
+                let errorMessage = 'Signup failed. Please try again.';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage = 'Email already registered. Please use a different email or login';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage = 'Invalid email address';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'Password is too weak. Please use a stronger password';
+                }
+                
+                showError('signup', errorMessage);
+            }
+        }
+        
+        async function logout() {
+            try {
+                const { auth, signOut } = window.firebase;
+                await signOut(auth);
+                showToast('Logged out successfully', 'success');
+                showHome();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showToast('Logout failed', 'error');
+            }
+        }
+        
+        function showError(type, message) {
+            const errorDiv = document.getElementById(`${type}-error`);
+            const errorText = document.getElementById(`${type}-error-text`);
+            
+            errorText.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+        
+        function updateAuthUI() {
+            const userName = document.getElementById('user-name');
+            const authStatus = document.getElementById('auth-status');
+            const verifiedBadge = document.getElementById('verified-badge');
+            const userAvatar = document.getElementById('user-avatar');
+            const profileName = document.getElementById('profile-name');
+            const profileFullName = document.getElementById('profile-full-name');
+            const profileEmail = document.getElementById('profile-email');
+            const profileReferralCode = document.getElementById('profile-referral-code');
+            const userReferralCodeElement = document.getElementById('user-referral-code');
+            const accountHolder = document.getElementById('account-holder');
+            
+            if (currentUser) {
+                userName.textContent = currentUser.name || 'Prolo Trader';
+                authStatus.textContent = 'Verified Trader';
+                verifiedBadge.classList.remove('hidden');
+                userAvatar.textContent = 'person';
+                
+                if (profileName) profileName.textContent = currentUser.name;
+                if (profileFullName) profileFullName.textContent = currentUser.name;
+                if (profileEmail) profileEmail.textContent = currentUser.email;
+                if (profileReferralCode) profileReferralCode.textContent = currentUser.referral_code || 'PROLO001';
+                if (userReferralCodeElement) userReferralCodeElement.textContent = currentUser.referral_code || 'PROLO001';
+                if (accountHolder) accountHolder.textContent = currentUser.name.toUpperCase();
+                
+                if (walletBalance > 0) {
+                    document.getElementById('wallet-balance').textContent = `₹${walletBalance.toLocaleString()}`;
+                } else {
+                    document.getElementById('wallet-balance').textContent = '₹0';
+                }
+                
+                updateReferralProgress();
+            } else {
+                userName.textContent = 'Prolo Opinion';
+                authStatus.textContent = 'Tap to login';
+                verifiedBadge.classList.add('hidden');
+                userAvatar.textContent = 'person';
+                document.getElementById('wallet-balance').textContent = '₹0';
+                
+                if (profileName) profileName.textContent = 'Prolo Trader';
+                if (profileFullName) profileFullName.textContent = 'Login to view';
+                if (profileEmail) profileEmail.textContent = 'user@example.com';
+                if (profileReferralCode) profileReferralCode.textContent = 'Login to view';
+                if (userReferralCodeElement) userReferralCodeElement.textContent = 'Login to view';
+                if (accountHolder) accountHolder.textContent = '';
+                
+                const progressElement = document.getElementById('referral-progress');
+                const progressBar = document.getElementById('referral-progress-bar');
+                if (progressElement) progressElement.textContent = '0/10 refers';
+                if (progressBar) progressBar.style.width = '0%';
+            }
+        }
+        
+        // ===================== REFERRAL FUNCTIONS =====================
+        async function loadUserReferrals() {
+            if (!currentUser) return;
+            
+            try {
+                let referrals = [];
+                if (await initializeFirebase()) {
+                    referrals = await getUserReferralsFromFirebase(currentUser.id);
+                } else {
+                    referrals = simulatedReferrals.filter(ref => ref.referrer_id === currentUser.id);
+                }
+                
+                renderReferrals(referrals);
+                updateReferralProgress();
+            } catch (error) {
+                console.error('Error loading referrals:', error);
+            }
+        }
+        
+        function renderReferrals(referrals) {
+            const container = document.getElementById('referrals-list');
+            if (!container) return;
+            
+            if (referrals.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4 text-slate-400">
+                        <span class="material-symbols-outlined text-4xl mb-2">group</span>
+                        <p>No referrals yet</p>
+                        <p class="text-xs mt-1">Share your code to earn rewards!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = referrals.map(referral => `
+                <div class="flex items-center justify-between bg-white dark:bg-[#1a2e36] p-3 rounded-lg">
+                    <div class="flex items-center gap-3">
+                        <div class="size-8 rounded-full ${referral.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'} flex items-center justify-center font-bold text-xs">
+                            ${(referral.referred_user_name || 'UU').substring(0, 2).toUpperCase()}
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-black dark:text-white">${referral.referred_user_name || 'Unknown User'}</p>
+                            <p class="text-[10px] text-gray-400">${formatDate(referral.created_at || referral.date)}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] font-bold ${referral.status === 'completed' ? 'text-green-500 bg-green-500/10' : 'text-orange-400 bg-orange-400/10'} px-2 py-1 rounded">
+                            ${referral.status === 'completed' ? '₹10 BONUS' : 'PENDING'}
+                        </span>
+                        <p class="text-[8px] text-gray-400 mt-1">Code: ${referral.referral_code_used || 'N/A'}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function copyReferralCode() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            const referralCode = currentUser.referral_code || 'PROLO001';
+            navigator.clipboard.writeText(referralCode)
+                .then(() => showToast('Referral code copied!', 'success'))
+                .catch(() => showToast('Failed to copy', 'error'));
+        }
+        
+        function shareReferralLink() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            const referralCode = currentUser.referral_code || 'PROLO001';
+            const message = `Join Prolo Opinion using my referral code ${referralCode} and get ₹10 bonus! Download the app now.`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Join Prolo Opinion',
+                    text: message,
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(message)
+                    .then(() => showToast('Referral message copied!', 'success'))
+                    .catch(() => showToast('Failed to share', 'error'));
+            }
+        }
+        
+        function shareViaWhatsApp() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            const referralCode = currentUser.referral_code || 'PROLO001';
+            const message = `Join Prolo Opinion using my referral code *${referralCode}* and get ₹10 bonus! Download the app now.`;
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+        
+        function viewReferralHistory() {
+            showToast('Referral history feature coming soon', 'info');
+        }
+        
+        // ===================== WITHDRAWAL FUNCTIONS =====================
+        function setMaxWithdraw() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            const withdrawable = Math.floor(walletBalance * 0.8);
+            document.getElementById('withdraw-amount').value = withdrawable;
+            updateWithdrawalDetails();
+        }
+        
+        function updateWithdrawalDetails() {
+            const amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            const upi = document.getElementById('withdraw-upi').value;
+            
+            document.getElementById('requested-amount').textContent = `₹${amount.toFixed(2)}`;
+            document.getElementById('total-payout').textContent = `₹${amount.toFixed(2)}`;
+            
+            if (upi && upi.includes('@')) {
+                document.getElementById('upi-verified').classList.remove('hidden');
+            } else {
+                document.getElementById('upi-verified').classList.add('hidden');
+            }
+        }
+        
+        async function confirmWithdrawal() {
+            if (!currentUser) {
+                showToast('Please login first', 'error');
+                return;
+            }
+            
+            const amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            const upi = document.getElementById('withdraw-upi').value;
+            
+            if (amount < 100) {
+                showToast('Minimum withdrawal amount is ₹100', 'error');
+                return;
+            }
+            
+            if (!upi || !upi.includes('@')) {
+                showToast('Please enter a valid UPI ID', 'error');
+                return;
+            }
+            
+            const withdrawable = Math.floor(walletBalance * 0.8);
+            if (amount > withdrawable) {
+                showToast(`Maximum withdrawal amount is ₹${withdrawable.toLocaleString()}`, 'error');
+                return;
+            }
+            
+            showLoading('Processing withdrawal...');
+            
+            try {
+                const firebaseReady = await initializeFirebase();
+                let result;
+                
+                if (firebaseReady) {
+                    result = await saveWithdrawalToFirebase({
+                        amount: amount,
+                        upi_id: upi
+                    });
+                } else {
+                    result = { success: true, withdrawal_id: `withdraw_${Date.now()}` };
+                }
+                
+                if (result.success) {
+                    walletBalance -= amount;
+                    
+                    if (firebaseReady) {
+                        await updateUserWalletBalance(currentUser.id, amount, 'subtract');
+                    }
+                    
+                    const userIndex = simulatedUsers.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        simulatedUsers[userIndex].wallet_balance = walletBalance;
+                        localStorage.setItem('prolo_users', JSON.stringify(simulatedUsers));
+                    }
+                    
+                    currentUser.wallet_balance = walletBalance;
+                    localStorage.setItem('prolo_user', JSON.stringify(currentUser));
+                    
+                    hideLoading();
+                    showToast(`Withdrawal request submitted for ₹${amount.toLocaleString()}`, 'success');
+                    
+                    document.getElementById('withdraw-amount').value = '';
+                    document.getElementById('withdraw-upi').value = '';
+                    
+                    document.getElementById('wallet-balance').textContent = `₹${walletBalance.toLocaleString()}`;
+                    updateAuthUI();
+                    
+                    showWallet();
+                } else {
+                    hideLoading();
+                    showToast('Withdrawal failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                console.error('Withdrawal error:', error);
+                showToast('Withdrawal failed. Please try again.', 'error');
+            }
+        }
+        
+        // ===================== DATA LOADING =====================
+        async function loadCategories() {
+            categories = simulatedCategories;
+            renderCategories();
+        }
+        
+        async function loadEvents(category = null, search = null) {
+            showLoading('Loading events...');
+            
+            const params = {};
+            if (category && category !== 'all') {
+                params.category = category;
+                currentCategory = category;
+            } else {
+                currentCategory = 'all';
+            }
+            if (search) params.search = search;
+            
+            const sort = document.getElementById('sort-select').value;
+            params.sort = sort;
+            
+            try {
+                const firebaseReady = await initializeFirebase();
+                if (firebaseReady) {
+                    events = await getEventsFromFirebase(params);
+                } else {
+                    let filteredEvents = [...simulatedEvents];
+                    
+                    if (params.category && params.category !== 'all') {
+                        filteredEvents = filteredEvents.filter(e => 
+                            e.category.toLowerCase() === params.category.toLowerCase()
+                        );
+                    }
+                    
+                    if (params.search) {
+                        const searchTerm = params.search.toLowerCase();
+                        filteredEvents = filteredEvents.filter(e => 
+                            e.question.toLowerCase().includes(searchTerm) ||
+                            e.title.toLowerCase().includes(searchTerm)
+                        );
+                    }
+                    
+                    if (params.sort) {
+                        if (params.sort === 'trending') {
+                            filteredEvents.sort((a, b) => b.participants - a.participants);
+                        } else if (params.sort === 'new') {
+                            filteredEvents.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                        } else if (params.sort === 'ending_soon') {
+                            filteredEvents.sort((a, b) => new Date(a.end_time) - new Date(b.end_time));
+                        }
+                    }
+                    
+                    events = filteredEvents;
+                }
+                
+                renderEvents();
+                updateSectionVisibility();
+                renderHotDeals();
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading events:', error);
+                hideLoading();
+                showToast('Failed to load events', 'error');
+            }
+        }
+        
+        async function loadEventDetails(eventId, position = null, price = null) {
+            showLoading('Loading event...');
+            
+            try {
+                const firebaseReady = await initializeFirebase();
+                if (firebaseReady) {
+                    currentEvent = await getEventFromFirebase(eventId);
+                }
+                
+                if (!currentEvent) {
+                    currentEvent = simulatedEvents.find(e => e.id === eventId);
+                }
+                
+                if (currentEvent) {
+                    if (position && price) {
+                        selectedPosition = position;
+                        selectedPrice = price;
+                        selectedQuantity = 50;
+                    }
+                    showPage('event-details');
+                    renderEventDetails();
+                } else {
+                    showToast('Event not found', 'error');
+                    showHome();
+                }
+            } catch (error) {
+                console.error('Error loading event details:', error);
+                showToast('Failed to load event', 'error');
+                showHome();
+            }
+            
+            hideLoading();
+        }
+        
+        async function loadWalletBalance() {
+            if (!authToken || !currentUser) {
+                walletBalance = 0;
+                document.getElementById('wallet-balance').textContent = '₹0';
+                return;
+            }
+            
+            try {
+                const firebaseReady = await initializeFirebase();
+                if (firebaseReady) {
+                    const userData = await getUserFromFirebase(currentUser.id);
+                    if (userData) {
+                        walletBalance = userData.wallet_balance || 0;
+                    }
+                } else {
+                    const userIndex = simulatedUsers.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        walletBalance = simulatedUsers[userIndex].wallet_balance || 0;
+                    }
+                }
+                
+                document.getElementById('wallet-balance').textContent = `₹${walletBalance.toLocaleString()}`;
+                
+                const withdrawable = Math.floor(walletBalance * 0.8);
+                const withdrawableElement = document.getElementById('withdrawable-balance');
+                if (withdrawableElement) {
+                    withdrawableElement.textContent = `₹${withdrawable.toLocaleString()}`;
+                }
+            } catch (error) {
+                console.error('Error loading wallet balance:', error);
+                walletBalance = 0;
+                document.getElementById('wallet-balance').textContent = '₹0';
+            }
+        }
+        
+        async function loadWalletDetails() {
+            showLoading('Loading wallet...');
+            
+            if (!currentUser) {
+                hideLoading();
+                return;
+            }
+            
+            try {
+                await loadWalletBalance();
+                
+                const withdrawable = Math.floor(walletBalance * 0.8);
+                const promotional = Math.floor(walletBalance * 0.2);
+                
+                const transactions = [
+                    {
+                        id: 'tx_001',
+                        type: 'deposit',
+                        description: 'Money Added via UPI',
+                        amount: 200000,
+                        status: 'Success',
+                        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+                    },
+                    {
+                        id: 'tx_002',
+                        type: 'trade',
+                        description: 'Trade: IND vs AUS Match',
+                        amount: -325000,
+                        status: 'Debited',
+                        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+                    },
+                    {
+                        id: 'tx_003',
+                        type: 'winning',
+                        description: 'Winnings: Previous Match',
+                        amount: 120000,
+                        status: 'Settled',
+                        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+                    }
+                ];
+                
+                if (currentUser.bonus_received && currentUser.bonus_received > 0) {
+                    transactions.unshift({
+                        id: 'tx_bonus',
+                        type: 'bonus',
+                        description: 'Referral Bonus',
+                        amount: currentUser.bonus_received,
+                        status: 'Credited',
+                        timestamp: currentUser.created_at
+                    });
+                }
+                
+                renderWallet({
+                    total_balance: walletBalance,
+                    withdrawable: withdrawable,
+                    promotional: promotional,
+                    transactions
+                });
+                
+                hideLoading();
+            } catch (error) {
+                console.error('Error loading wallet details:', error);
+                hideLoading();
+            }
+        }
+        
+        // ===================== RENDER FUNCTIONS =====================
+        function renderCategories() {
+            const container = document.getElementById('category-tabs');
+            container.innerHTML = '';
+            
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-slate-500 dark:text-slate-400 pb-3 pt-2 cursor-pointer hover:text-primary transition-colors';
+                button.onclick = () => {
+                    document.querySelectorAll('#category-tabs button').forEach(btn => {
+                        btn.className = btn.className.replace('border-b-primary text-primary', 'border-b-transparent text-slate-500 dark:text-slate-400');
+                    });
+                    button.className = button.className.replace('border-b-transparent text-slate-500 dark:text-slate-400', 'border-b-primary text-primary');
+                    loadEvents(category.id);
+                };
+                
+                if (category.id === 'all') {
+                    button.className = button.className.replace('border-b-transparent text-slate-500 dark:text-slate-400', 'border-b-primary text-primary');
+                }
+                
+                button.innerHTML = `<p class="text-sm font-bold tracking-wide">${category.name}</p>`;
+                container.appendChild(button);
+            });
+        }
+        
+        function updateSectionVisibility() {
+            const btcChartSection = document.getElementById('btc-chart-section');
+            const hotDealsSection = document.getElementById('hot-deals-section');
+            
+            if (currentCategory === 'crypto') {
+                btcChartSection.classList.remove('hidden');
+                hotDealsSection.classList.add('hidden');
+            } else {
+                btcChartSection.classList.add('hidden');
+                hotDealsSection.classList.remove('hidden');
+            }
+        }
+        
+        function renderHotDeals() {
+            const container = document.getElementById('hot-deals');
+            container.innerHTML = '';
+            
+            const hotEvents = events.slice(0, 2);
+            
+            hotEvents.forEach(event => {
+                const card = document.createElement('div');
+                card.className = 'flex flex-col gap-3 rounded-xl min-w-[280px] bg-white dark:bg-[#1a2b30] p-3 shadow-lg border border-slate-100 dark:border-slate-800 cursor-pointer';
+                card.onclick = () => loadEventDetails(event.id);
+                
+                card.innerHTML = `
+                    <div class="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-lg relative overflow-hidden" style="background-color: #1a2d34;">
+                        <div class="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span> LIVE
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-slate-900 dark:text-white text-base font-bold">${event.title}</p>
+                        <p class="text-primary text-xs font-semibold flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[14px]">trending_up</span> ${event.participants.toLocaleString()} traders
+                        </p>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function renderEvents() {
+            const container = document.getElementById('events-container');
+            container.innerHTML = '';
+            
+            if (events.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <span class="material-symbols-outlined text-4xl text-slate-400">search_off</span>
+                        <p class="text-slate-400 mt-2">No events found</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            events.forEach(event => {
+                const isEnded = event.status === 'ENDED' || event.status === 'SETTLED';
+                const card = document.createElement('div');
+                card.className = 'bg-white dark:bg-[#1a2b30] rounded-xl p-4 border border-slate-100 dark:border-slate-800 shadow-sm mb-4';
+                
+                card.innerHTML = `
+                    <div class="flex gap-4 items-start mb-4">
+                        <div class="size-12 ${getCategoryColor(event.category)} rounded-lg flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-white text-3xl">${getCategoryIcon(event.category)}</span>
+                        </div>
+                        <div class="flex-1">
+                            <h4 class="text-slate-900 dark:text-white font-bold leading-snug cursor-pointer hover:text-primary transition-colors" onclick="loadEventDetails('${event.id}')">${event.question}</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-[11px] mt-1 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-[14px]">groups</span> ${event.participants.toLocaleString()} traders
+                                <span class="w-1 h-1 bg-slate-300 dark:bg-slate-600 rounded-full"></span>
+                                ${formatEndTime(event.end_time)}
+                            </p>
+                            ${isEnded ? `<div class="mt-2 inline-block ${event.status === 'SETTLED' ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'} px-2 py-1 rounded text-[10px] font-bold">${event.status}</div>` : ''}
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="loadEventDetails('${event.id}', 'YES', ${event.yes_price})" ${isEnded || !authToken ? 'disabled' : ''} class="flex-1 ${isEnded ? 'bg-gray-300 dark:bg-gray-700' : 'bg-primary/10 hover:bg-primary/20'} border ${isEnded ? 'border-gray-400' : 'border-primary/30'} py-3 rounded-lg flex flex-col items-center justify-center transition-all ${!isEnded ? 'active:scale-95 cursor-pointer' : 'cursor-not-allowed'}">
+                            <span class="${isEnded ? 'text-gray-600 dark:text-gray-400' : 'text-primary'} text-sm font-extrabold">Yes ₹${event.yes_price}</span>
+                            <span class="text-[10px] ${isEnded ? 'text-gray-500' : 'text-primary/70'} font-bold uppercase">Price</span>
+                        </button>
+                        <button onclick="loadEventDetails('${event.id}', 'NO', ${event.no_price})" ${isEnded || !authToken ? 'disabled' : ''} class="flex-1 ${isEnded ? 'bg-gray-300 dark:bg-gray-700' : 'bg-slate-100 dark:bg-[#2c4b55] hover:bg-slate-200 dark:hover:bg-[#355966]'} py-3 rounded-lg flex flex-col items-center justify-center transition-all ${!isEnded ? 'active:scale-95 cursor-pointer' : 'cursor-not-allowed'}">
+                            <span class="${isEnded ? 'text-gray-600 dark:text-gray-400' : 'text-slate-900 dark:text-white'} text-sm font-extrabold">No ₹${event.no_price}</span>
+                            <span class="text-[10px] ${isEnded ? 'text-gray-500' : 'text-slate-500 dark:text-slate-400'} font-bold uppercase">Price</span>
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function renderEventDetails() {
+            if (!currentEvent) return;
+            
+            const container = document.getElementById('event-details-content');
+            const tradePanel = document.getElementById('trade-panel');
+            const isEnded = currentEvent.status === 'ENDED' || currentEvent.status === 'SETTLED';
+            
+            const participants = currentEvent.participants;
+            const formattedParticipants = participants >= 1000 ? `${(participants/1000).toFixed(1)}k` : participants;
+            
+            container.innerHTML = `
+                <div class="mb-8">
+                    <div class="flex items-center gap-2 mb-4">
+                        <span class="bg-primary/20 text-primary text-[10px] font-bold px-2.5 py-1 rounded-full border border-primary/20 uppercase tracking-wider">${currentEvent.category}</span>
+                        ${currentEvent.status === 'LIVE' ? `
+                            <div class="bg-red-500/10 text-red-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-red-500/20 flex items-center gap-1 uppercase tracking-wider">
+                                <span class="size-1.5 bg-red-500 rounded-full animate-pulse"></span> Live
+                            </div>
+                        ` : ''}
+                    </div>
+                    <h3 class="text-white text-2xl font-extrabold leading-[1.3] mb-6">
+                        ${currentEvent.question}
+                    </h3>
+                    <div class="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                        <div class="flex items-center gap-4">
+                            <div class="flex -space-x-3">
+                                <div class="size-10 rounded-full border-2 border-background-dark bg-blue-600 flex items-center justify-center text-xs font-black shadow-lg">${currentEvent.category.substring(0,3).toUpperCase()}</div>
+                                <div class="size-10 rounded-full border-2 border-background-dark bg-yellow-500 flex items-center justify-center text-xs font-black shadow-lg">${currentEvent.category.substring(1,4).toUpperCase()}</div>
+                            </div>
+                            <div>
+                                <p class="text-white font-bold text-sm">${formattedParticipants} traders</p>
+                                <p class="text-white/40 text-[11px] font-medium">Active predictions</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-white/40 text-[10px] font-bold uppercase tracking-wider mb-0.5">Time Left</p>
+                            <p class="text-white font-black text-sm tabular-nums">${formatEndTimeDetailed(currentEvent.end_time)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            if (isEnded) {
+                tradePanel.innerHTML = `
+                    <div class="p-4 text-center">
+                        <div class="bg-yellow-900/20 border border-yellow-700 rounded-xl p-3">
+                            <span class="material-symbols-outlined text-yellow-400 text-2xl mb-1">lock_clock</span>
+                            <p class="text-white font-bold text-xs">Event ${currentEvent.status}</p>
+                            <p class="text-slate-400 text-xs mt-1">Trading is closed for this event</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const investment = selectedPrice ? (selectedPrice * selectedQuantity).toFixed(2) : '0.00';
+                const potentialWin = (selectedQuantity * 10).toFixed(2);
+                
+                tradePanel.innerHTML = `
+                    <div class="w-10 h-1 bg-white/20 rounded-full mx-auto mt-4"></div>
+                    <div class="p-6">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <button onclick="selectPosition('YES', ${currentEvent.yes_price})" class="relative overflow-hidden group flex-1 ${selectedPosition === 'YES' ? 'bg-primary/10 border-2 border-primary' : 'bg-white/5 border-2 border-white/10'} rounded-3xl p-4 flex flex-col items-center shadow-lg ${selectedPosition === 'YES' ? 'shadow-primary/5' : ''}">
+                                <span class="text-[10px] font-black ${selectedPosition === 'YES' ? 'text-primary' : 'text-white/40'} mb-1 uppercase tracking-[0.2em]">Yes</span>
+                                <span class="text-3xl font-black ${selectedPosition === 'YES' ? 'text-white' : 'text-white/60'}">₹${currentEvent.yes_price}</span>
+                                ${selectedPosition === 'YES' ? '<div class="absolute bottom-0 left-0 h-1 w-full bg-primary"></div>' : ''}
+                            </button>
+                            <button onclick="selectPosition('NO', ${currentEvent.no_price})" class="relative overflow-hidden group flex-1 ${selectedPosition === 'NO' ? 'bg-primary/10 border-2 border-primary' : 'bg-white/5 border-2 border-white/10'} rounded-3xl p-4 flex flex-col items-center ${selectedPosition === 'NO' ? 'shadow-lg shadow-primary/5' : ''}">
+                                <span class="text-[10px] font-black ${selectedPosition === 'NO' ? 'text-primary' : 'text-white/40'} mb-1 uppercase tracking-[0.2em]">No</span>
+                                <span class="text-3xl font-black ${selectedPosition === 'NO' ? 'text-white' : 'text-white/60'}">₹${currentEvent.no_price}</span>
+                                ${selectedPosition === 'NO' ? '<div class="absolute bottom-0 left-0 h-1 w-full bg-primary"></div>' : ''}
+                            </button>
+                        </div>
+                        <div class="mb-8 space-y-6">
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-center px-2">
+                                    <span class="text-xs font-bold text-white/60 uppercase tracking-widest">Quantity</span>
+                                    <span class="text-xs font-bold text-primary">Enter number of shares</span>
+                                </div>
+                                <div class="bg-white/5 rounded-2xl p-4 border border-white/10">
+                                    <input 
+                                        type="number" 
+                                        id="quantity-input" 
+                                        class="w-full bg-transparent text-white text-3xl font-black text-center focus:outline-none"
+                                        value="${selectedQuantity}"
+                                        min="1"
+                                        max="1000000"
+                                        oninput="updateQuantityFromInput(this.value)"
+                                        onblur="validateQuantity(this.value)"
+                                    />
+                                    <div class="flex justify-center gap-6 mt-4">
+                                        <button onclick="setQuantity(1)" class="text-xs font-bold text-white/40 hover:text-white px-4 py-2 bg-white/5 rounded-full cursor-pointer">1</button>
+                                        <button onclick="setQuantity(10)" class="text-xs font-bold text-white/40 hover:text-white px-4 py-2 bg-white/5 rounded-full cursor-pointer">10</button>
+                                        <button onclick="setQuantity(50)" class="text-xs font-bold text-white/40 hover:text-white px-4 py-2 bg-white/5 rounded-full cursorPointer">50</button>
+                                        <button onclick="setQuantity(100)" class="text-xs font-bold text-white/40 hover:text-white px-4 py-2 bg-white/5 rounded-full cursor-pointer">100</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <div class="space-y-1">
+                                    <p class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Investment</p>
+                                    <p class="text-2xl font-black text-white" id="investment-display">₹${investment}</p>
+                                </div>
+                                <div class="h-10 w-[1px] bg-white/10"></div>
+                                <div class="text-right space-y-1">
+                                    <p class="text-[10px] font-black text-teal-accent uppercase tracking-[0.2em]">Potential Win</p>
+                                    <p class="text-2xl font-black text-teal-accent" id="potential-win-display">₹${potentialWin}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="swipe-button" class="relative w-full h-[72px] bg-gradient-to-r from-primary to-[#00f2ea] rounded-3xl overflow-hidden cursor-pointer swipe-container">
+                            <div class="swipe-shimmer"></div>
+                            <div class="swipe-thumb h-[60px] w-[60px] bg-white rounded-2xl flex items-center justify-center shadow-xl">
+                                <span class="material-symbols-outlined text-primary text-2xl font-black">keyboard_double_arrow_right</span>
+                            </div>
+                            <div class="swipe-track">
+                                <span class="text-white text-base font-black uppercase tracking-wider">Swipe to Place Order</span>
+                            </div>
+                        </div>
+                        <div class="mt-6 text-center">
+                            <p class="text-[10px] text-white/30 font-bold uppercase tracking-widest">Taxes and fees may apply</p>
+                        </div>
+                        <div class="h-4"></div>
+                    </div>
+                `;
+                
+                initializeSwipe();
+            }
+        }
+        
+        // ===================== SWIPE FUNCTIONALITY =====================
+        function initializeSwipe() {
+            const swipeButton = document.getElementById('swipe-button');
+            if (!swipeButton) return;
+            
+            let isSwiping = false;
+            let startX = 0;
+            let currentX = 0;
+            const thumb = swipeButton.querySelector('.swipe-thumb');
+            const trackText = swipeButton.querySelector('.swipe-track span');
+            const maxSwipe = swipeButton.offsetWidth - thumb.offsetWidth - 12;
+            
+            const startSwipe = (e) => {
+                if (!selectedPosition) {
+                    showToast('Please select YES or NO first', 'error');
+                    return;
+                }
+                
+                checkAuth(() => {
+                    isSwiping = true;
+                    startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                    swipeButton.style.cursor = 'grabbing';
+                    thumb.style.cursor = 'grabbing';
+                    
+                    document.addEventListener('mousemove', moveSwipe);
+                    document.addEventListener('touchmove', moveSwipe, { passive: false });
+                    document.addEventListener('mouseup', endSwipe);
+                    document.addEventListener('touchend', endSwipe);
+                });
+            };
+            
+            const moveSwipe = (e) => {
+                if (!isSwiping) return;
+                e.preventDefault();
+                
+                currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let distance = currentX - startX;
+                distance = Math.max(0, Math.min(distance, maxSwipe));
+                
+                thumb.style.transform = `translateX(${distance}px)`;
+                const progress = distance / maxSwipe;
+                swipeButton.style.background = `linear-gradient(90deg, #0db9f2 ${progress * 50}%, #00f2ea ${progress * 100}%)`;
+                
+                if (progress > 0.8) {
+                    trackText.textContent = 'Release to Confirm Order';
+                    swipeButton.classList.add('swipe-complete');
+                } else {
+                    trackText.textContent = 'Swipe to Place Order';
+                    swipeButton.classList.remove('swipe-complete');
+                }
+            };
+            
+            const endSwipe = () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                
+                const currentTransform = thumb.style.transform;
+                const distance = currentTransform ? parseFloat(currentTransform.replace('translateX(', '').replace('px)', '')) || 0 : 0;
+                const progress = distance / maxSwipe;
+                
+                document.removeEventListener('mousemove', moveSwipe);
+                document.removeEventListener('touchmove', moveSwipe);
+                document.removeEventListener('mouseup', endSwipe);
+                document.removeEventListener('touchend', endSwipe);
+                
+                swipeButton.style.cursor = '';
+                thumb.style.cursor = '';
+                
+                if (progress > 0.8) {
+                    swipeButton.classList.add('swipe-complete');
+                    trackText.textContent = 'Placing Order...';
+                    thumb.style.transform = `translateX(${maxSwipe}px)`;
+                    
+                    setTimeout(() => {
+                        placeOrder();
+                    }, 300);
+                } else {
+                    thumb.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    thumb.style.transform = 'translateX(0px)';
+                    swipeButton.style.background = 'linear-gradient(90deg, #0db9f2 0%, #00f2ea 100%)';
+                    trackText.textContent = 'Swipe to Place Order';
+                    swipeButton.classList.remove('swipe-complete');
+                    
+                    setTimeout(() => {
+                        thumb.style.transition = '';
+                    }, 400);
+                }
+            };
+            
+            swipeButton.addEventListener('mousedown', startSwipe);
+            swipeButton.addEventListener('touchstart', startSwipe, { passive: false });
+            
+            swipeButton.addEventListener('touchmove', (e) => {
+                if (isSwiping) e.preventDefault();
+            }, { passive: false });
+        }
+        
+        function renderWallet(data) {
+            const container = document.getElementById('wallet-content');
+            container.innerHTML = `
+                <div class="p-4">
+                    <div class="bg-card-dark rounded-xl p-6 shadow-xl relative overflow-hidden">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full blur-2xl"></div>
+                        <div class="absolute -left-4 -bottom-4 w-32 h-32 bg-primary/5 rounded-full blur-3xl"></div>
+                        <div class="relative z-10">
+                            <p class="text-primary text-xs font-bold uppercase tracking-widest mb-1">Total Balance</p>
+                            <h2 class="text-white text-4xl font-extrabold mb-6">₹${data.total_balance.toLocaleString()}</h2>
+                            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                                <div>
+                                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Withdrawable</p>
+                                    <p class="text-white text-lg font-bold">₹${data.withdrawable.toLocaleString()}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-slate-400 text-xs font-medium uppercase tracking-wider">Promotional</p>
+                                    <p class="text-white text-lg font-bold">₹${data.promotional.toLocaleString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 px-4 mb-8">
+                    <button onclick="showDeposit()" class="flex-1 bg-primary text-background-dark py-4 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform cursor-pointer">
+                        <span class="material-symbols-outlined font-bold">add_circle</span>
+                        Add Money
+                    </button>
+                    <button onclick="showWithdraw()" class="flex-1 bg-card-dark text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 border border-slate-700 active:scale-95 transition-transform cursor-pointer">
+                        <span class="material-symbols-outlined">payments</span>
+                        Withdraw
+                    </button>
+                </div>
+                
+                <div class="px-4">
+                    <div class="text-center py-8">
+                        <span class="material-symbols-outlined text-4xl text-slate-400 mb-2">receipt_long</span>
+                        <p class="text-slate-400">Transaction history will appear here</p>
+                        <p class="text-slate-500 text-xs mt-1">Make your first deposit to see transactions</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderPortfolio(data) {
+            const container = document.getElementById('portfolio-content');
+            
+            // Show all positions (active + settled) with proper status and values
+            const allPositions = [...(data.active_positions || []), ...(data.settled_positions || [])];
+            
+            container.innerHTML = `
+                <div class="p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-slate-900 dark:text-white text-lg font-bold">Your Positions</h3>
+                        <span class="text-primary text-xs font-bold uppercase">${allPositions.length} trades</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col gap-3 p-4">
+                    ${allPositions && allPositions.length > 0 ?
+                        allPositions.map(position => {
+                            const isEnded = position.status === 'ended' || position.status === 'settled';
+                            const isActive = position.status === 'active';
+                            const pnl = position.pnl || 0;
+                            const pnlPercent = position.invested > 0 ? ((pnl / position.invested) * 100).toFixed(1) : 0;
+                            
+                            return `
+                            <div class="${isEnded ? 'ended-trade' : 'bg-white dark:bg-[#1b2d34]'} rounded-xl p-4 shadow-sm border border-slate-100 dark:border-slate-800">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="flex gap-3">
+                                        <div class="w-10 h-10 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                                            <span class="material-symbols-outlined text-slate-400">${getCategoryIcon(position.category)}</span>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-2">${position.question}</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">${position.category} • ${formatEndTime(position.end_time)}</p>
+                                        </div>
+                                    </div>
+                                    <div class="${position.position === 'YES' ? 'bg-primary/10 dark:bg-primary/20 text-primary' : 'bg-red-100 dark:bg-red-900/30 text-red-500'} px-2 py-1 rounded text-[10px] font-extrabold uppercase">${position.position}</div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 gap-4 mb-3">
+                                    <div class="flex flex-col">
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">Invested</p>
+                                        <p class="text-sm font-bold text-slate-900 dark:text-white">₹${position.invested.toLocaleString()}</p>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">Current Value</p>
+                                        <p class="text-sm font-bold ${pnl >= 0 ? 'text-green-500' : 'text-red-500'}">₹${position.current_value.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-between items-end pt-3 border-t border-slate-50 dark:border-slate-800">
+                                    <div class="flex flex-col">
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">Quantity</p>
+                                        <p class="text-sm font-bold text-slate-900 dark:text-white">${position.quantity.toLocaleString()}</p>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">P&L</p>
+                                        <p class="text-sm font-bold ${pnl >= 0 ? 'text-green-500' : 'text-red-500'}">${pnl >= 0 ? '+' : ''}₹${Math.abs(pnl).toLocaleString()} (${pnlPercent}%)</p>
+                                    </div>
+                                    <div class="flex flex-col items-end">
+                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-tighter">Status</p>
+                                        <p class="text-sm font-bold ${isActive ? 'text-primary' : position.status === 'settled' ? 'text-green-500' : 'text-yellow-500'}">${position.status.toUpperCase()}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        }).join('') :
+                        `<div class="text-center py-8 text-slate-400">
+                            <span class="material-symbols-outlined text-4xl mb-2">analytics</span>
+                            <p>No positions yet</p>
+                            <p class="text-slate-500 text-xs mt-1">Start trading to see positions here</p>
+                        </div>`
+                    }
+                </div>
+            `;
+        }
+        
+        // ===================== TRADING FUNCTIONS =====================
+        function selectPosition(position, price) {
+            selectedPosition = position;
+            selectedPrice = price;
+            renderEventDetails();
+            updateInvestmentDisplay();
+        }
+        
+        function updateQuantityFromInput(value) {
+            const quantity = parseInt(value) || 1;
+            if (quantity >= 1 && quantity <= 1000000) {
+                selectedQuantity = quantity;
+                updateInvestmentDisplay();
+            }
+        }
+        
+        function validateQuantity(value) {
+            const quantity = parseInt(value) || 1;
+            if (quantity < 1) {
+                selectedQuantity = 1;
+                document.getElementById('quantity-input').value = 1;
+            } else if (quantity > 1000000) {
+                selectedQuantity = 1000000;
+                document.getElementById('quantity-input').value = 1000000;
+            }
+            updateInvestmentDisplay();
+        }
+        
+        function setQuantity(quantity) {
+            selectedQuantity = quantity;
+            document.getElementById('quantity-input').value = quantity;
+            updateInvestmentDisplay();
+        }
+        
+        function updateInvestmentDisplay() {
+            if (!selectedPrice) return;
+            
+            const investment = (selectedPrice * selectedQuantity).toFixed(2);
+            const potentialWin = (selectedQuantity * 10).toFixed(2);
+            
+            if (document.getElementById('investment-display')) {
+                document.getElementById('investment-display').textContent = `₹${investment}`;
+                document.getElementById('potential-win-display').textContent = `₹${potentialWin}`;
+            }
+        }
+        
+        // ===================== PAGE NAVIGATION =====================
+        function showPage(pageName) {
+            currentPage = pageName;
+            hideAllPages();
+            document.getElementById(`${pageName}-page`).classList.add('active');
+            
+            switch(pageName) {
+                case 'home':
+                    if (!categories.length) loadCategories();
+                    loadEvents();
+                    break;
+                case 'wallet':
+                    loadWalletDetails();
+                    break;
+                case 'portfolio':
+                    loadPortfolio();
+                    break;
+                case 'event-details':
+                    break;
+                case 'rewards':
+                    loadUserReferrals();
+                    break;
+                case 'profile':
+                    break;
+                case 'deposit':
+                    document.getElementById('amount').value = '';
+                    document.getElementById('utr').value = '';
+                    document.getElementById('msg').textContent = '';
+                    document.getElementById('msg').style.color = '';
+                    setTimeout(initializeDepositSwipe, 100);
+                    break;
+                case 'withdraw':
+                    loadWalletBalance();
+                    setTimeout(() => {
+                        const withdrawAmount = document.getElementById('withdraw-amount');
+                        const withdrawUpi = document.getElementById('withdraw-upi');
+                        if (withdrawAmount) {
+                            withdrawAmount.addEventListener('input', updateWithdrawalDetails);
+                        }
+                        if (withdrawUpi) {
+                            withdrawUpi.addEventListener('input', updateWithdrawalDetails);
+                        }
+                    }, 100);
+                    break;
+                case 'admin':
+                    loadAdminSettings();
+                    break;
+            }
+        }
+        
+        function hideAllPages() {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+        }
+        
+        function showHome() { showPage('home'); }
+        function showWallet() { checkAuth(() => showPage('wallet')); }
+        function showPortfolio() { checkAuth(() => showPage('portfolio')); }
+        function showRewards() { checkAuth(() => showPage('rewards')); }
+        function showProfile() { checkAuth(() => showPage('profile')); }
+        function showDeposit() { checkAuth(() => showPage('deposit')); }
+        function showWithdraw() { checkAuth(() => showPage('withdraw')); }
+        
+        // ===================== SEARCH & FILTER =====================
+        let searchTimeout = null;
+        
+        function searchEvents(query) {
+            clearTimeout(searchTimeout);
+            
+            searchTimeout = setTimeout(() => {
+                if (query.length >= 2 || query.length === 0) {
+                    loadEvents(currentCategory, query);
+                }
+            }, 500);
+        }
+        
+        // ===================== HELPER FUNCTIONS =====================
+        function getCategoryColor(category) {
+            switch(category.toLowerCase()) {
+                case 'cricket': return 'bg-red-500';
+                case 'youtube': return 'bg-red-500';
+                case 'crypto': return 'bg-amber-500';
+                case 'politics': return 'bg-purple-500';
+                case 'finance': return 'bg-blue-500';
+                default: return 'bg-primary';
+            }
+        }
+        
+        function getCategoryIcon(category) {
+            switch(category.toLowerCase()) {
+                case 'cricket': return 'sports_cricket';
+                case 'youtube': return 'smart_display';
+                case 'crypto': return 'currency_bitcoin';
+                case 'politics': return 'account_balance';
+                case 'finance': return 'trending_up';
+                default: return 'question_mark';
+            }
+        }
+        
+        function formatEndTime(endTime) {
+            const now = new Date();
+            const end = new Date(endTime);
+            const diffMs = end - now;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            
+            if (diffMs < 0) return 'Ended';
+            if (diffHours < 1) return 'Ending in <1h';
+            if (diffHours < 24) return `Ending in ${diffHours}h`;
+            
+            const diffDays = Math.floor(diffHours / 24);
+            return `Ending in ${diffDays}d`;
+        }
+        
+        function formatEndTimeDetailed(endTime) {
+            const now = new Date();
+            const end = new Date(endTime);
+            const diffMs = end - now;
+            
+            if (diffMs < 0) return '00:00';
+            
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            const diffSecs = Math.floor((diffMs % (1000 * 60)) / 1000);
+            
+            if (diffHours > 0) {
+                return `${diffHours}h ${diffMins}m`;
+            } else {
+                return `${diffMins}m ${diffSecs}s`;
+            }
+        }
+        
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            return date.toLocaleDateString();
+        }
+        
+        function refreshWallet() {
+            loadWalletDetails();
+            loadWalletBalance();
+        }
+        
+        function refreshPortfolio() {
+            loadPortfolio();
+        }
+        
+        function refreshChart() {
+            const chartSection = document.getElementById('btc-chart-section');
+            const chartHTML = chartSection.innerHTML;
+            chartSection.innerHTML = chartHTML;
+            showToast('Chart refreshed', 'success');
+        }
+        
+        function shareEvent() {
+            if (currentEvent) {
+                if (navigator.share) {
+                    navigator.share({
+                        title: currentEvent.question,
+                        text: `Predict on Prolo: ${currentEvent.question}`,
+                        url: window.location.href
+                    });
+                } else {
+                    navigator.clipboard.writeText(currentEvent.question);
+                    showToast('Event link copied to clipboard', 'success');
+                }
+            }
+        }
+        
+        // ===================== DEPOSIT FUNCTIONS =====================
+        function copyUPI() {
+            const upiText = document.getElementById('upiText').textContent;
+            navigator.clipboard.writeText(upiText)
+                .then(() => {
+                    const copyMsg = document.getElementById('copyMsg');
+                    copyMsg.classList.remove('hidden');
+                    setTimeout(() => copyMsg.classList.add('hidden'), 2000);
+                })
+                .catch(err => console.error('Failed to copy:', err));
+        }
+        
+        function initializeDepositSwipe() {
+            const swipeButton = document.getElementById('deposit-swipe-button');
+            if (!swipeButton) return;
+            
+            let isSwiping = false;
+            let startX = 0;
+            let currentX = 0;
+            const thumb = swipeButton.querySelector('.swipe-thumb');
+            const trackText = swipeButton.querySelector('.swipe-track span');
+            const maxSwipe = swipeButton.offsetWidth - thumb.offsetWidth - 12;
+            
+            const startSwipe = (e) => {
+                isSwiping = true;
+                startX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                swipeButton.style.cursor = 'grabbing';
+                thumb.style.cursor = 'grabbing';
+                
+                document.addEventListener('mousemove', moveSwipe);
+                document.addEventListener('touchmove', moveSwipe, { passive: false });
+                document.addEventListener('mouseup', endSwipe);
+                document.addEventListener('touchend', endSwipe);
+            };
+            
+            const moveSwipe = (e) => {
+                if (!isSwiping) return;
+                e.preventDefault();
+                
+                currentX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                let distance = currentX - startX;
+                distance = Math.max(0, Math.min(distance, maxSwipe));
+                
+                thumb.style.transform = `translateX(${distance}px)`;
+                const progress = distance / maxSwipe;
+                swipeButton.style.background = `linear-gradient(90deg, #0db9f2 ${progress * 50}%, #00f2ea ${progress * 100}%)`;
+                
+                if (progress > 0.8) {
+                    trackText.textContent = 'Release to Confirm Deposit';
+                    swipeButton.classList.add('swipe-complete');
+                } else {
+                    trackText.textContent = 'Swipe to Confirm Deposit';
+                    swipeButton.classList.remove('swipe-complete');
+                }
+            };
+            
+            const endSwipe = () => {
+                if (!isSwiping) return;
+                isSwiping = false;
+                
+                const currentTransform = thumb.style.transform;
+                const distance = currentTransform ? parseFloat(currentTransform.replace('translateX(', '').replace('px)', '')) || 0 : 0;
+                const progress = distance / maxSwipe;
+                
+                document.removeEventListener('mousemove', moveSwipe);
+                document.removeEventListener('touchmove', moveSwipe);
+                document.removeEventListener('mouseup', endSwipe);
+                document.removeEventListener('touchend', endSwipe);
+                
+                swipeButton.style.cursor = '';
+                thumb.style.cursor = '';
+                
+                if (progress > 0.8) {
+                    swipeButton.classList.add('swipe-complete');
+                    trackText.textContent = 'Processing...';
+                    thumb.style.transform = `translateX(${maxSwipe}px)`;
+                    
+                    setTimeout(() => {
+                        confirmDeposit();
+                    }, 300);
+                } else {
+                    thumb.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                    thumb.style.transform = 'translateX(0px)';
+                    swipeButton.style.background = 'linear-gradient(90deg, #0db9f2 0%, #00f2ea 100%)';
+                    trackText.textContent = 'Swipe to Confirm Deposit';
+                    swipeButton.classList.remove('swipe-complete');
+                    
+                    setTimeout(() => {
+                        thumb.style.transition = '';
+                    }, 400);
+                }
+            };
+            
+            swipeButton.addEventListener('mousedown', startSwipe);
+            swipeButton.addEventListener('touchstart', startSwipe, { passive: false });
+            
+            swipeButton.addEventListener('touchmove', (e) => {
+                if (isSwiping) e.preventDefault();
+            }, { passive: false });
+        }
+        
+        async function confirmDeposit() {
+            const amount = document.getElementById('amount').value;
+            const utr = document.getElementById('utr').value;
+            const msg = document.getElementById('msg');
+            
+            if (!amount || amount < 200) {
+                msg.textContent = 'Minimum deposit amount is ₹200';
+                msg.style.color = 'red';
+                resetSwipeButton();
+                return;
+            }
+            
+            if (!utr || utr.length !== 12) {
+                msg.textContent = 'Please enter a valid 12-digit UTR number';
+                msg.style.color = 'red';
+                resetSwipeButton();
+                return;
+            }
+            
+            showLoading('Processing deposit...');
+            
+            try {
+                // Simulate deposit processing
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                const depositAmount = parseFloat(amount);
+                walletBalance += depositAmount;
+                
+                if (currentUser) {
+                    currentUser.wallet_balance = walletBalance;
+                    localStorage.setItem('prolo_user', JSON.stringify(currentUser));
+                    
+                    const userIndex = simulatedUsers.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        simulatedUsers[userIndex].wallet_balance = walletBalance;
+                        localStorage.setItem('prolo_users', JSON.stringify(simulatedUsers));
+                    }
+                    
+                    // Update Firebase if available
+                    const firebaseReady = await initializeFirebase();
+                    if (firebaseReady) {
+                        await updateUserWalletBalance(currentUser.id, depositAmount, 'add');
+                    }
+                }
+                
+                hideLoading();
+                
+                msg.textContent = `✅ Deposit of ₹${depositAmount.toLocaleString()} successful!`;
+                msg.style.color = 'green';
+                
+                document.getElementById('wallet-balance').textContent = `₹${walletBalance.toLocaleString()}`;
+                document.getElementById('amount').value = '';
+                document.getElementById('utr').value = '';
+                
+                showToast(`₹${depositAmount.toLocaleString()} deposited successfully!`, 'success');
+                
+                setTimeout(() => {
+                    showWallet();
+                }, 1500);
+                
+            } catch (error) {
+                hideLoading();
+                console.error('Deposit error:', error);
+                msg.textContent = 'Deposit failed. Please try again.';
+                msg.style.color = 'red';
+                resetSwipeButton();
+                showToast('Deposit failed. Please try again.', 'error');
+            }
+        }
+        
+        function resetSwipeButton() {
+            const swipeButton = document.getElementById('deposit-swipe-button');
+            if (!swipeButton) return;
+            
+            const thumb = swipeButton.querySelector('.swipe-thumb');
+            const trackText = swipeButton.querySelector('.swipe-track span');
+            
+            thumb.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            thumb.style.transform = 'translateX(0px)';
+            swipeButton.style.background = 'linear-gradient(90deg, #0db9f2 0%, #00f2ea 100%)';
+            trackText.textContent = 'Swipe to Confirm Deposit';
+            swipeButton.classList.remove('swipe-complete');
+            
+            setTimeout(() => {
+                thumb.style.transition = '';
+            }, 400);
+        }
+        
+        // ===================== INITIALIZATION =====================
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initializeFirebase();
+            
+            const savedUser = localStorage.getItem('prolo_user');
+            if (savedUser && authToken) {
+                currentUser = JSON.parse(savedUser);
+                updateAuthUI();
+                
+                loadWalletBalance();
+                loadCategories();
+                loadEvents();
+                loadUserReferrals();
+                
+                // Auto-settle any ended trades on startup
+                if (currentUser && currentUser.portfolio) {
+                    autoSettleEndedTrades(currentUser.portfolio);
+                }
+            } else {
+                updateAuthUI();
+                loadCategories();
+                loadEvents();
+            }
+            
+            if (!currentUser) {
+                document.getElementById('wallet-balance').textContent = '₹0';
+            }
+            
+            // Initialize deposit page with admin settings
+            document.getElementById('upiText').textContent = adminSettings.upi_id;
+            document.getElementById('deposit-qr-code').src = adminSettings.qr_url + '&t=' + Date.now();
+        });
+    </script>
+</body>
+</html>
